@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Potosi Weather Dashboard</title>
+  <title>Potosi Ops Weather Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     * {
@@ -22,7 +22,7 @@
 
     .dashboard {
       display: grid;
-      grid-template-rows: 60% 40%;
+      grid-template-rows: 45% 27% 28%;
       grid-template-columns: 100%;
       width: 100vw;
       height: 100vh;
@@ -31,13 +31,12 @@
       background: radial-gradient(circle at top, #101522 0, #05070b 55%);
     }
 
-    .top-panel {
+    .panel {
       border-radius: 8px;
       border: 1px solid #1b2638;
       overflow: hidden;
       background: #05070b;
       box-shadow: 0 0 18px rgba(0, 0, 0, 0.7);
-      position: relative;
       display: flex;
       flex-direction: column;
     }
@@ -83,25 +82,21 @@
       height: 100%;
     }
 
+    /* ROW 1: RADAR */
+    .top-panel {
+      position: relative;
+    }
+
     .top-map {
       flex: 1;
     }
 
-    .bottom-row {
+    /* ROW 2: WIND + FORECAST + FIRE WEATHER */
+    .middle-row {
       display: grid;
-      grid-template-columns: 2fr 1.4fr;
+      grid-template-columns: 2fr 1.5fr 1.5fr;
       gap: 6px;
       height: 100%;
-    }
-
-    .panel {
-      border-radius: 8px;
-      border: 1px solid #1b2638;
-      overflow: hidden;
-      background: #05070b;
-      box-shadow: 0 0 18px rgba(0, 0, 0, 0.7);
-      display: flex;
-      flex-direction: column;
     }
 
     .panel-body {
@@ -115,6 +110,75 @@
     .wind-panel iframe {
       width: 100%;
       height: 100%;
+    }
+
+    .panel-body-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .panel-body-header-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #9ca3af;
+    }
+
+    .panel-body-header-location {
+      font-size: 11px;
+      color: #e5f3ff;
+      font-weight: 600;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #1f2937;
+      background: rgba(15, 23, 42, 0.9);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #a5b4fc;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #38bdf8;
+      box-shadow: 0 0 6px #38bdf8;
+    }
+
+    .forecast-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+
+    .forecast-main .temp {
+      font-size: 22px;
+      font-weight: 700;
+      color: #f97316;
+    }
+
+    .forecast-main .condition {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #e5f3ff;
+    }
+
+    .forecast-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #9ca3af;
     }
 
     .forecast-grid {
@@ -153,80 +217,183 @@
       color: #9ca3af;
     }
 
-    .forecast-main {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 4px;
-    }
-
-    .forecast-main .temp {
-      font-size: 22px;
-      font-weight: 700;
-      color: #f97316;
-    }
-
-    .forecast-main .condition {
+    /* Fire weather tile */
+    .fire-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-auto-rows: minmax(0, 1fr);
+      gap: 6px;
       font-size: 11px;
+    }
+
+    .fire-tile {
+      border-radius: 6px;
+      border: 1px solid #7f1d1d;
+      padding: 6px 8px;
+      background: radial-gradient(circle at top left, #111827 0, #020617 60%);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .fire-label {
+      font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: 0.16em;
+      letter-spacing: 0.12em;
+      color: #fecaca;
+    }
+
+    .fire-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fca5a5;
+    }
+
+    .fire-sub {
+      font-size: 10px;
+      color: #fecaca;
+    }
+
+    /* ROW 3: SOLAR + BIG GOES + ALERTS/METAR */
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1.2fr 2.2fr 1.6fr;
+      gap: 6px;
+      height: 100%;
+    }
+
+    .solar-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-auto-rows: minmax(0, 1fr);
+      gap: 6px;
+      font-size: 11px;
+    }
+
+    .solar-tile {
+      border-radius: 6px;
+      border: 1px solid #1f2937;
+      padding: 6px 8px;
+      background: radial-gradient(circle at top left, #0f172a 0, #020617 60%);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .solar-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #bfdbfe;
+    }
+
+    .solar-value {
+      font-size: 13px;
+      font-weight: 600;
       color: #e5f3ff;
     }
 
-    .forecast-meta {
-      display: flex;
-      justify-content: space-between;
+    .solar-sub {
       font-size: 10px;
       color: #9ca3af;
     }
 
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 6px;
+    /* GOES panel */
+    .goes-controls {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+      font-size: 10px;
+    }
+
+    .goes-button {
+      padding: 3px 8px;
       border-radius: 999px;
       border: 1px solid #1f2937;
-      background: rgba(15, 23, 42, 0.9);
-      font-size: 9px;
+      background: #020617;
+      color: #9ca3af;
       text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: #a5b4fc;
+      letter-spacing: 0.12em;
+      cursor: pointer;
     }
 
-    .badge-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      background: #38bdf8;
-      box-shadow: 0 0 6px #38bdf8;
+    .goes-button.active {
+      border-color: #38bdf8;
+      color: #e5f3ff;
+      background: #0f172a;
     }
 
-    .panel-body-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 4px;
+    .goes-frame-wrapper {
+      flex: 1;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #1f2937;
     }
 
-    .panel-body-header-title {
+    /* Alerts + METAR */
+    .alerts-grid {
+      display: grid;
+      grid-template-rows: 1.2fr 1.8fr;
+      gap: 6px;
       font-size: 11px;
+    }
+
+    .alerts-tile, .metar-tile {
+      border-radius: 6px;
+      border: 1px solid #1f2937;
+      padding: 6px 8px;
+      background: radial-gradient(circle at top left, #111827 0, #020617 60%);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .alerts-label, .metar-label {
+      font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: 0.16em;
+      letter-spacing: 0.12em;
       color: #9ca3af;
     }
 
-    .panel-body-header-location {
-      font-size: 11px;
+    .alert-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
       color: #e5f3ff;
-      font-weight: 600;
+    }
+
+    .alert-tag {
+      padding: 1px 6px;
+      border-radius: 999px;
+      border: 1px solid #7f1d1d;
+      color: #fecaca;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .metar-line {
+      font-size: 10px;
+      color: #e5f3ff;
+    }
+
+    .metar-code {
+      font-family: monospace;
+      font-size: 10px;
+      color: #a5b4fc;
+    }
+
+    .small-note {
+      font-size: 9px;
+      color: #6b7280;
+      margin-top: 4px;
     }
   </style>
 </head>
 <body>
   <div class="dashboard">
-    <!-- TOP: SATELLITE + RADAR (night mode, zoomed out, auto-play) -->
-    <div class="top-panel">
+    <!-- ROW 1: RADAR + SATELLITE -->
+    <div class="panel top-panel">
       <div class="panel-header">
         <div style="display:flex;align-items:center;gap:6px;">
           <div class="status-dot"></div>
@@ -245,9 +412,9 @@
       </div>
     </div>
 
-    <!-- BOTTOM: WIND + FORECAST -->
-    <div class="bottom-row">
-      <!-- WIND PANEL (zoomed out) -->
+    <!-- ROW 2: WIND + FORECAST + FIRE WEATHER -->
+    <div class="middle-row">
+      <!-- WIND PANEL -->
       <div class="panel wind-panel">
         <div class="panel-header">
           <div style="display:flex;align-items:center;gap:6px;">
@@ -261,13 +428,13 @@
         </div>
         <div style="flex:1;">
           <iframe
-            src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&detailLat=37.93&detailLon=-90.79&zoom=5&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=&calendar=&pressure=&type=map&location=coordinates&detail=&metricWind=mph&metricTemp=%C2%B0F"
+            src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&detailLat=37.93&detailLon=90.79&zoom=5&level=surface&overlay=wind&product=ecmwf&animate=1&menu=&message=&marker=&calendar=&pressure=&type=map&location=coordinates&detail=&metricWind=mph&metricTemp=%C2%B0F"
             allowfullscreen
           ></iframe>
         </div>
       </div>
 
-      <!-- FORECAST PANEL (nerdy ops tile) -->
+      <!-- FORECAST PANEL -->
       <div class="panel">
         <div class="panel-header">
           <div style="display:flex;align-items:center;gap:6px;">
@@ -276,7 +443,7 @@
           </div>
           <div class="right">
             <span>Potosi, MO</span>
-            <span>Local Time</span>
+            <span>Local</span>
           </div>
         </div>
         <div class="panel-body">
@@ -287,7 +454,7 @@
             </div>
             <div class="badge">
               <div class="badge-dot"></div>
-              <span>Solar &amp; Fire Ops</span>
+              <span>Ops Overview</span>
             </div>
           </div>
 
@@ -338,12 +505,249 @@
             </div>
           </div>
 
-          <div style="font-size:9px;color:#6b7280;margin-top:4px;">
-            * Edit these values in the HTML whenever you want a fresh daily snapshot, or we can later wire this to a live API.
+          <div class="small-note">
+            Edit these values in HTML whenever you want a fresh daily snapshot.
+          </div>
+        </div>
+      </div>
+
+      <!-- FIRE WEATHER PANEL -->
+      <div class="panel">
+        <div class="panel-header">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="status-dot"></div>
+            <span class="label">Fire Weather — Potosi / KFAM Region</span>
+          </div>
+          <div class="right">
+            <span>Mode: Ops</span>
+            <span>Manual Snapshot</span>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="panel-body-header">
+            <div>
+              <div class="panel-body-header-title">Fire Behavior Indicators</div>
+              <div class="panel-body-header-location">Farmington / Potosi Corridor</div>
+            </div>
+            <div class="badge">
+              <div class="badge-dot" style="background:#f97316;box-shadow:0 0 6px #f97316;"></div>
+              <span>Fire Ops</span>
+            </div>
+          </div>
+
+          <div class="fire-grid">
+            <div class="fire-tile">
+              <div class="fire-label">Haines Index</div>
+              <div class="fire-value">4 (Low–Moderate)</div>
+              <div class="fire-sub">Stability not extreme, but watch for pockets</div>
+            </div>
+
+            <div class="fire-tile">
+              <div class="fire-label">Fine Fuel Moisture</div>
+              <div class="fire-value">8–10%</div>
+              <div class="fire-sub">Grass and light fuels receptive</div>
+            </div>
+
+            <div class="fire-tile">
+              <div class="fire-label">Ventilation Rate</div>
+              <div class="fire-value">Good</div>
+              <div class="fire-sub">Smoke dispersion generally favorable</div>
+            </div>
+
+            <div class="fire-tile">
+              <div class="fire-label">Mixing Height</div>
+              <div class="fire-value">3,000–4,000 ft</div>
+              <div class="fire-sub">Afternoon mixing improves dispersion</div>
+            </div>
+
+            <div class="fire-tile">
+              <div class="fire-label">ERC</div>
+              <div class="fire-value">Near Seasonal</div>
+              <div class="fire-sub">Not extreme, but trending upward</div>
+            </div>
+
+            <div class="fire-tile">
+              <div class="fire-label">Red Flag / Watches</div>
+              <div class="fire-value">None</div>
+              <div class="fire-sub">Monitor NWS for changes</div>
+            </div>
+          </div>
+
+          <div class="small-note">
+            You can tweak these numbers daily based on your briefings or local fire weather discussions.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 3: SOLAR + BIG GOES + ALERTS/METAR -->
+    <div class="bottom-row">
+      <!-- SOLAR PANEL -->
+      <div class="panel">
+        <div class="panel-header">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="status-dot"></div>
+            <span class="label">Solar Power Window</span>
+          </div>
+          <div class="right">
+            <span>Off-Grid Ops</span>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="panel-body-header">
+            <div>
+              <div class="panel-body-header-title">Charging Outlook</div>
+              <div class="panel-body-header-location">Potosi Homestead</div>
+            </div>
+            <div class="badge">
+              <div class="badge-dot" style="background:#22c55e;box-shadow:0 0 6px #22c55e;"></div>
+              <span>Solar</span>
+            </div>
+          </div>
+
+          <div class="solar-grid">
+            <div class="solar-tile">
+              <div class="solar-label">Today’s Solar Window</div>
+              <div class="solar-value">10:00 – 16:00</div>
+              <div class="solar-sub">Best hours for bulk charging</div>
+            </div>
+
+            <div class="solar-tile">
+              <div class="solar-label">Cloud Cover Trend</div>
+              <div class="solar-value">Increasing PM</div>
+              <div class="solar-sub">Shift heavy loads earlier in the day</div>
+            </div>
+
+            <div class="solar-tile">
+              <div class="solar-label">Tomorrow’s Outlook</div>
+              <div class="solar-value">Slightly Better</div>
+              <div class="solar-sub">Plan battery usage accordingly</div>
+            </div>
+
+            <div class="solar-tile">
+              <div class="solar-label">Battery Strategy Note</div>
+              <div class="solar-value">Conserve after 18:00</div>
+              <div class="solar-sub">Avoid deep discharge on cloudy evenings</div>
+            </div>
+          </div>
+
+          <div class="small-note">
+            Adjust these notes based on your actual solar performance and forecast.
+          </div>
+        </div>
+      </div>
+
+      <!-- BIG GOES PANEL (TOGGLEABLE) -->
+      <div class="panel" id="goes-panel">
+        <div class="panel-header">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="status-dot"></div>
+            <span class="label">GOES Satellite — CONUS</span>
+          </div>
+          <div class="right">
+            <span>Default: IR</span>
+            <span>Toggle Modes</span>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="goes-controls">
+            <button class="goes-button active" data-mode="ir">IR</button>
+            <button class="goes-button" data-mode="fire">Fire</button>
+            <button class="goes-button" data-mode="wv">Water Vapor</button>
+            <button class="goes-button" data-mode="vis">Visible</button>
+          </div>
+          <div class="goes-frame-wrapper">
+            <iframe
+              id="goes-frame"
+              src="https://www.star.nesdis.noaa.gov/GOES/sector.php?s=conus&p=ir"
+              allowfullscreen
+            ></iframe>
+          </div>
+          <div class="small-note">
+            IR is best for day &amp; night storm structure. Fire mode highlights hotspots and smoke; WV shows moisture transport; Visible is crisp daytime cloud detail.
+          </div>
+        </div>
+      </div>
+
+      <!-- ALERTS + METAR PANEL -->
+      <div class="panel">
+        <div class="panel-header">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="status-dot"></div>
+            <span class="label">Alerts &amp; METAR — KFAM Farmington</span>
+          </div>
+          <div class="right">
+            <span>Heads-Up Tile</span>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="alerts-grid">
+            <!-- ALERTS -->
+            <div class="alerts-tile">
+              <div class="alerts-label">Active Alerts (Manual Snapshot)</div>
+              <div class="alert-item">
+                <span>Red Flag Warning</span>
+                <span class="alert-tag">None</span>
+              </div>
+              <div class="alert-item">
+                <span>Severe Thunderstorm Watch</span>
+                <span class="alert-tag">None</span>
+              </div>
+              <div class="alert-item">
+                <span>Tornado Watch</span>
+                <span class="alert-tag">None</span>
+              </div>
+              <div class="alert-item">
+                <span>Flood Advisory</span>
+                <span class="alert-tag">None</span>
+              </div>
+              <div class="small-note">
+                Update this tile based on NWS / local briefings. It’s your quick “heads-up” board.
+              </div>
+            </div>
+
+            <!-- METAR -->
+            <div class="metar-tile">
+              <div class="metar-label">Latest METAR — KFAM (Farmington)</div>
+              <div class="metar-line">
+                <span class="metar-code">KFAM 121945Z 32010KT 10SM SCT040 24/12 A2992</span>
+              </div>
+              <div class="metar-line">Wind: 320° at 10 kt — NW flow, moderate.</div>
+              <div class="metar-line">Visibility: 10+ SM — good spotting and travel.</div>
+              <div class="metar-line">Clouds: Scattered around 4,000 ft — some mid-level cover.</div>
+              <div class="metar-line">Temp/Dewpoint: 24°C / 12°C — decent spread, fuels drying.</div>
+              <div class="metar-line">Pressure: 29.92 inHg — near standard, watch for drops.</div>
+              <div class="small-note">
+                You can paste the latest METAR code here and adjust the interpretation lines as needed.
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <script>
+    (function () {
+      const goesFrame = document.getElementById('goes-frame');
+      const buttons = document.querySelectorAll('.goes-button');
+
+      const urls = {
+        ir: 'https://www.star.nesdis.noaa.gov/GOES/sector.php?s=conus&p=ir',
+        fire: 'https://www.star.nesdis.noaa.gov/GOES/sector.php?s=conus&p=fd',
+        wv: 'https://www.star.nesdis.noaa.gov/GOES/sector.php?s=conus&p=wv',
+        vis: 'https://www.star.nesdis.noaa.gov/GOES/sector.php?s=conus&p=ge'
+      };
+
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const mode = btn.getAttribute('data-mode');
+          buttons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          goesFrame.src = urls[mode] || urls.ir;
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
