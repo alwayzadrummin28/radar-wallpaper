@@ -1,722 +1,219 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Potosi Ops Weather Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hybrid Ops Wall</title>
 
-  <style>
-    :root {
-      --bg-day: #e4e7ec;
-      --bg-night: #05070b;
-      --panel-day: #f4f6fa;
-      --panel-night: rgba(10, 13, 20, 0.96);
-      --text-day: #11141a;
-      --text-night: #f5f7ff;
-      --accent-ember: #ff7a3c;
-      --accent-cyan: #3fd5ff;
-      --border-soft-day: rgba(0, 0, 0, 0.12);
-      --border-soft-night: rgba(255, 255, 255, 0.08);
-      --shadow-day: 0 10px 25px rgba(0, 0, 0, 0.18);
-      --shadow-night: 0 18px 40px rgba(0, 0, 0, 0.85);
-      --radius-panel: 14px;
-      --transition-fast: 0.18s ease-out;
-      --transition-med: 0.28s ease-out;
-      --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
+<style>
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+/* GLOBAL RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-    html, body {
-      width: 100%;
-      height: 100%;
-    }
+/* BODY THEMES */
+body {
+    font-family: "Segoe UI", sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    color: #e8f0ff;
+}
 
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: var(--font-main);
-      background: var(--bg-day);
-      color: var(--text-day);
-      transition: background var(--transition-med), color var(--transition-med);
-    }
+/* NIGHT OPS */
+body.night-ops {
+    background: #050505;
+}
 
-    body.night-mode {
-      background: radial-gradient(circle at top, #151b2b 0, #05070b 55%, #020308 100%);
-      color: var(--text-night);
-    }
+/* DAY OPS */
+body.day-ops {
+    background: #dfe6ef;
+    color: #111;
+}
 
-    /* Layout root */
-    .ops-root {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 18px 18px 26px;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+/* THEME TOGGLE BUTTON */
+#theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    cursor: pointer;
+    z-index: 999;
+    font-size: 14px;
+    letter-spacing: 1px;
+    backdrop-filter: blur(6px);
+}
 
-    /* Dashboard grid */
-    .dashboard {
-      display: grid;
-      grid-template-rows: 42% 28% 30%;
-      grid-template-columns: 100%;
-      gap: 10px;
-      flex: 1;
-    }
+/* BACKGROUND GRID */
+.background-grid {
+    position: fixed;
+    inset: 0;
+    background-image: 
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+}
 
-    .middle-row {
-      display: grid;
-      grid-template-columns: 2fr 1.5fr 1.5fr;
-      gap: 10px;
-    }
+/* HYBRID OPS VIGNETTE */
+.background-vignette {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at top left, rgba(0,150,255,0.15), transparent 60%),
+                radial-gradient(circle at bottom right, rgba(255,80,0,0.15), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+}
 
-    .bottom-row {
-      display: grid;
-      grid-template-columns: 1.2fr 2.2fr 1.6fr;
-      gap: 10px;
-    }
+/* DASHBOARD GRID */
+.dashboard {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 40px;
+    height: 100%;
+}
 
-    /* Generic panel styling */
-    .ops-panel {
-      background: var(--panel-day);
-      border-radius: var(--radius-panel);
-      border: 1px solid var(--border-soft-day);
-      box-shadow: var(--shadow-day);
-      padding: 12px 14px 14px;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      transition:
-        background var(--transition-med),
-        border-color var(--transition-med),
-        box-shadow var(--transition-med),
-        transform var(--transition-fast);
-    }
+/* TILE ROWS */
+.tile-row {
+    display: flex;
+    gap: 20px;
+}
 
-    body.night-mode .ops-panel {
-      background: linear-gradient(135deg, rgba(10, 13, 20, 0.98), rgba(6, 9, 16, 0.98));
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      box-shadow: var(--shadow-night);
-    }
+/* TILE BASE */
+.tile {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
 
-    .ops-panel:hover {
-      transform: translateY(-2px);
-    }
+/* TILE SIZES */
+.tile-big { height: 45vh; width: 100%; }
+.tile-medium { height: 25vh; flex: 1; }
+.tile-small { height: 20vh; flex: 1; }
 
-    /* Glowing top accent bar */
-    .ops-panel::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -10%;
-      width: 120%;
-      height: 3px;
-      background: linear-gradient(90deg, var(--accent-ember), var(--accent-cyan));
-      opacity: 0.65;
-      transition: opacity var(--transition-fast), box-shadow var(--transition-fast);
-    }
+/* TILE HEADERS — THIN TACTICAL BARS */
+.tile-header {
+    padding: 6px 12px;
+    font-size: 14px;
+    letter-spacing: 1px;
+    background: rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+}
 
-    body.night-mode .ops-panel::before {
-      opacity: 0.9;
-      box-shadow: 0 0 12px rgba(255, 122, 60, 0.55), 0 0 18px rgba(63, 213, 255, 0.45);
-    }
+/* CATEGORY COLORS */
+.tile-header.storm { border-left: 4px solid #00aaff; }
+.tile-header.fire { border-left: 4px solid #ff5500; }
+.tile-header.info { border-left: 4px solid #cccccc; }
 
-    /* Panel header */
-    .ops-title {
-      font-size: 0.85rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      font-weight: 700;
-      margin: 4px 0 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      color: rgba(0, 0, 0, 0.7);
-    }
+/* IFRAMES */
+iframe {
+    width: 100%;
+    height: calc(100% - 30px);
+    border: none;
+}
 
-    body.night-mode .ops-title {
-      color: rgba(245, 247, 255, 0.82);
-    }
+/* TEXT TILES */
+.tile-text {
+    padding: 12px;
+    font-size: 14px;
+    line-height: 1.4;
+}
 
-    .ops-title-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .ops-title-pill {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: radial-gradient(circle, var(--accent-cyan) 0, var(--accent-ember) 70%, transparent 100%);
-      box-shadow: 0 0 8px rgba(63, 213, 255, 0.7);
-    }
-
-    .ops-title-right {
-      font-size: 0.75rem;
-      opacity: 0.8;
-    }
-
-    /* Content blocks */
-    .ops-content {
-      font-size: 0.9rem;
-      line-height: 1.4;
-      margin-top: 4px;
-      flex: 1;
-    }
-
-    .ops-section {
-      margin-top: 8px;
-      padding-top: 6px;
-      border-top: 1px solid rgba(0, 0, 0, 0.08);
-    }
-
-    body.night-mode .ops-section {
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .ops-section-title {
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      opacity: 0.78;
-      margin-bottom: 3px;
-    }
-
-    .ops-section-body {
-      font-size: 0.9rem;
-      line-height: 1.35;
-    }
-
-    /* Fire behavior color coding */
-    .fire-behavior {
-      font-weight: 700;
-    }
-
-    .fire-low {
-      color: #1fa85b;
-    }
-
-    .fire-moderate {
-      color: #f4a623;
-    }
-
-    .fire-elevated {
-      color: #ff7a3c;
-    }
-
-    .fire-critical {
-      color: #ff3b3b;
-    }
-
-    /* GOES panel */
-    .goes-panel {
-      position: relative;
-    }
-
-    .goes-controls {
-      display: flex;
-      gap: 6px;
-      margin: 6px 0 8px;
-    }
-
-    .goes-button {
-      padding: 3px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(0, 0, 0, 0.25);
-      background: rgba(244, 246, 250, 0.95);
-      color: #11141a;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      cursor: pointer;
-      transition:
-        background var(--transition-fast),
-        color var(--transition-fast),
-        border-color var(--transition-fast),
-        box-shadow var(--transition-fast);
-    }
-
-    .goes-button.active {
-      background: #0f172a;
-      color: #e5f3ff;
-      border-color: #38bdf8;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
-    }
-
-    body.night-mode .goes-button {
-      background: #020617;
-      color: #9ca3af;
-      border-color: #1f2937;
-    }
-
-    .goes-frame-wrapper {
-      flex: 1;
-      border-radius: calc(var(--radius-panel) - 4px);
-      overflow: hidden;
-      border: 1px solid rgba(0, 0, 0, 0.18);
-    }
-
-    body.night-mode .goes-frame-wrapper {
-      border-color: rgba(63, 213, 255, 0.4);
-      box-shadow: 0 0 16px rgba(63, 213, 255, 0.35);
-    }
-
-    .goes-frame-wrapper iframe {
-      display: block;
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-
-    /* Radar / Wind / iframe full */
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      border-radius: calc(var(--radius-panel) - 4px);
-    }
-
-    /* Footer HUD bar */
-    .ops-footer {
-      margin-top: 8px;
-      font-size: 0.78rem;
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      opacity: 0.8;
-    }
-
-    .ops-footer span {
-      white-space: nowrap;
-    }
-
-    /* Theme toggle button */
-    .theme-toggle {
-      position: fixed;
-      top: 10px;
-      right: 12px;
-      z-index: 9999;
-      padding: 6px 10px;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      border-radius: 999px;
-      border: 1px solid rgba(0, 0, 0, 0.25);
-      background: rgba(244, 246, 250, 0.95);
-      color: #11141a;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-      transition:
-        background var(--transition-fast),
-        color var(--transition-fast),
-        border-color var(--transition-fast),
-        box-shadow var(--transition-fast),
-        transform var(--transition-fast);
-    }
-
-    .theme-toggle-icon {
-      width: 9px;
-      height: 9px;
-      border-radius: 999px;
-      background: radial-gradient(circle, var(--accent-ember) 0, var(--accent-cyan) 70%, transparent 100%);
-      box-shadow: 0 0 8px rgba(255, 122, 60, 0.7);
-    }
-
-    .theme-toggle:hover {
-      transform: translateY(-1px);
-    }
-
-    body.night-mode .theme-toggle {
-      background: rgba(8, 11, 18, 0.96);
-      color: #f5f7ff;
-      border-color: rgba(63, 213, 255, 0.6);
-      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.85);
-    }
-
-    body.night-mode .theme-toggle-icon {
-      box-shadow:
-        0 0 10px rgba(63, 213, 255, 0.9),
-        0 0 16px rgba(255, 122, 60, 0.7);
-    }
-
-    /* Mobile tweaks */
-    @media (max-width: 900px) {
-      .ops-root {
-        padding: 10px;
-        height: auto;
-      }
-
-      .dashboard {
-        display: flex;
-        flex-direction: column;
-        height: auto;
-      }
-
-      .middle-row,
-      .bottom-row {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .ops-panel {
-        min-height: 260px;
-        margin-bottom: 12px;
-      }
-
-      iframe {
-        height: 260px;
-      }
-
-      .theme-toggle {
-        top: 8px;
-        right: 8px;
-        padding: 5px 8px;
-        font-size: 0.7rem;
-      }
-    }
-  </style>
+</style>
 </head>
 
-<body>
-  <button class="theme-toggle" id="themeToggle">
-    <span class="theme-toggle-icon"></span>
-    <span id="themeToggleLabel">AUTO • DAY OPS</span>
-  </button>
+<body class="night-ops">
 
-  <div class="ops-root">
-    <div class="dashboard">
+<!-- THEME TOGGLE -->
+<div id="theme-toggle" onclick="toggleTheme()">DAY / NIGHT OPS</div>
 
-      <!-- ROW 1 — RADAR -->
-      <div class="ops-panel">
-        <div class="ops-title">
-          <div class="ops-title-left">
-            <span class="ops-title-pill"></span>
-            <span>Potosi, MO — Cloud & Precip Composite</span>
-          </div>
-          <div class="ops-title-right">RainViewer</div>
-        </div>
-        <div class="ops-content">
-          <iframe src="https://www.rainviewer.com/map.html?loc=37.93,-90.79,5&dark=1&oC=1&oCS=1&oF=1&oAP=1&oFA=1&oFM=1&c=3&sm=1&sn=1&lm=1&o=83"></iframe>
-        </div>
-        <div class="ops-footer">
-          <span>Potosi Ops Weather Dashboard</span>
-          <span>Radar • Cloud & Precip</span>
-        </div>
-      </div>
+<!-- BACKGROUND GRID + GLOW -->
+<div class="background-grid"></div>
+<div class="background-vignette"></div>
 
-      <!-- ROW 2 — WIND / FORECAST / FIRE -->
-      <div class="middle-row">
+<!-- MAIN CONTAINER -->
+<div class="dashboard">
 
-        <!-- WIND -->
-        <div class="ops-panel">
-          <div class="ops-title">
-            <div class="ops-title-left">
-              <span class="ops-title-pill"></span>
-              <span>Wind Field — Potosi Region</span>
-            </div>
-            <div class="ops-title-right">Windy</div>
-          </div>
-          <div class="ops-content">
-            <iframe src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&zoom=5&level=surface&overlay=wind&product=ecmwf&animate=1&metricWind=mph&metricTemp=%C2%B0F"></iframe>
-          </div>
-          <div class="ops-footer">
-            <span>Surface Wind • ECMWF</span>
-            <span>Units: mph • °F</span>
-          </div>
-        </div>
-
-        <!-- FORECAST / OPS SNAPSHOT -->
-        <div class="ops-panel">
-          <div class="ops-title">
-            <div class="ops-title-left">
-              <span class="ops-title-pill"></span>
-              <span>Today’s Ops Snapshot</span>
-            </div>
-            <div class="ops-title-right">Potosi</div>
-          </div>
-          <div class="ops-content">
-            <div class="ops-section">
-              <div class="ops-section-title">Temperature</div>
-              <div class="ops-section-body">
-                <strong>Temp:</strong> 78°F / 58°F<br>
-                <strong>Condition:</strong> Partly Cloudy<br>
-                <strong>Rain Chance:</strong> 20%
-              </div>
-            </div>
-
-            <div class="ops-section">
-              <div class="ops-section-title">Wind & Humidity</div>
-              <div class="ops-section-body">
-                <strong>Wind:</strong> NW 8–15 mph (gusts 22)<br>
-                <strong>Humidity:</strong> 52%
-              </div>
-            </div>
-
-            <div class="ops-section">
-              <div class="ops-section-title">Solar & Fire</div>
-              <div class="ops-section-body">
-                <strong>Solar Window:</strong> 10:00–16:00<br>
-                <strong>Fire Behavior:</strong>
-                <span class="fire-behavior fire-moderate">Moderate</span>
-              </div>
-            </div>
-          </div>
-          <div class="ops-footer">
-            <span>Local: Potosi, MO</span>
-            <span>Updated: 9:58 PM</span>
-          </div>
-        </div>
-
-        <!-- FIRE WEATHER -->
-        <div class="ops-panel">
-          <div class="ops-title">
-            <div class="ops-title-left">
-              <span class="ops-title-pill"></span>
-              <span>Fire Weather — KFAM Region</span>
-            </div>
-            <div class="ops-title-right">Ops</div>
-          </div>
-          <div class="ops-content">
-            <div class="ops-section">
-              <div class="ops-section-title">Indices</div>
-              <div class="ops-section-body">
-                Haines Index: 4<br>
-                Fine Fuel Moisture: 8–10%<br>
-                ERC: Near Seasonal
-              </div>
-            </div>
-            <div class="ops-section">
-              <div class="ops-section-title">Dispersion</div>
-              <div class="ops-section-body">
-                Ventilation: Good<br>
-                Mixing Height: 3,000–4,000 ft<br>
-                Red Flag: None
-              </div>
-            </div>
-          </div>
-          <div class="ops-footer">
-            <span>Fire Ops Snapshot</span>
-            <span>KFAM Region</span>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- ROW 3 — SOLAR / GOES / ALERTS -->
-      <div class="bottom-row">
-
-        <!-- SOLAR -->
-        <div class="ops-panel">
-          <div class="ops-title">
-            <div class="ops-title-left">
-              <span class="ops-title-pill"></span>
-              <span>Solar Power Window</span>
-            </div>
-            <div class="ops-title-right">Off‑Grid</div>
-          </div>
-          <div class="ops-content">
-            <div class="ops-section">
-              <div class="ops-section-title">Today</div>
-              <div class="ops-section-body">
-                Solar Window: 10:00–16:00<br>
-                Cloud Trend: Increasing PM<br>
-                Battery Strategy: Conserve after 18:00
-              </div>
-            </div>
-            <div class="ops-section">
-              <div class="ops-section-title">Tomorrow</div>
-              <div class="ops-section-body">
-                Tomorrow: Slightly Better<br>
-                Plan: Charge early, taper late
-              </div>
-            </div>
-          </div>
-          <div class="ops-footer">
-            <span>Off‑Grid Solar Ops</span>
-            <span>Potosi Cabin</span>
-          </div>
-        </div>
-
-        <!-- GOES (BIG PANEL) -->
-        <div class="ops-panel goes-panel">
-          <div class="ops-title">
-            <div class="ops-title-left">
-              <span class="ops-title-pill"></span>
-              <span>GOES Satellite — CONUS</span>
-            </div>
-            <div class="ops-title-right">Medium Loop</div>
-          </div>
-
-          <div class="goes-controls">
-            <button class="goes-button active" data-mode="ir">IR</button>
-            <button class="goes-button" data-mode="wv">Water Vapor</button>
-            <button class="goes-button" data-mode="vis">Visible</button>
-            <button class="goes-button" data-mode="fire">Fire</button>
-          </div>
-
-          <div class="goes-frame-wrapper">
-            <iframe id="goes-frame"
-              src="https://weathernerds.org/sat_conus_ir_loop.php">
-            </iframe>
-          </div>
-
-          <div class="ops-footer">
-            <span>GOES • CONUS</span>
-            <span>Source: WeatherNerds</span>
-          </div>
-        </div>
-
-        <!-- ALERTS + METAR -->
-        <div class="ops-panel">
-          <div class="ops-title">
-            <div class="ops-title-left">
-              <span class="ops-title-pill"></span>
-              <span>Alerts & METAR — KFAM</span>
-            </div>
-            <div class="ops-title-right">Heads‑Up</div>
-          </div>
-          <div class="ops-content">
-            <div class="ops-section">
-              <div class="ops-section-title">Alerts</div>
-              <div class="ops-section-body">
-                Red Flag: None<br>
-                Severe T‑Storm Watch: None<br>
-                Flood Advisory: None
-              </div>
-            </div>
-            <div class="ops-section">
-              <div class="ops-section-title">METAR KFAM</div>
-              <div class="ops-section-body">
-                KFAM 121945Z 32010KT 10SM SCT040 24/12 A2992<br>
-                Wind NW 10 kt<br>
-                Visibility 10+ SM<br>
-                Clouds SCT040<br>
-                Temp/Dew: 24°C / 12°C
-              </div>
-            </div>
-          </div>
-          <div class="ops-footer">
-            <span>KFAM Aviation</span>
-            <span>Local METAR Feed</span>
-          </div>
-        </div>
-
-      </div>
+    <!-- TOP ROW — BIG TILE -->
+    <div class="tile tile-big">
+        <div class="tile-header storm">Storm Intelligence</div>
+        <iframe 
+            src="https://www.rainviewer.com/map.html?loc=37.93,-90.79,5&oFa=1&oC=1&oF=1&oAP=1&oL=1&layer=radar&sat=1&lightning=1&alerts=1">
+        </iframe>
     </div>
-  </div>
 
-  <script>
-    (function () {
-      const body = document.body;
-      const toggle = document.getElementById('themeToggle');
-      const label = document.getElementById('themeToggleLabel');
+    <!-- MIDDLE ROW — FIRE OPS -->
+    <div class="tile-row">
 
-      const MODE_AUTO = 'auto';
-      const MODE_DAY = 'day';
-      const MODE_NIGHT = 'night';
+        <div class="tile tile-medium">
+            <div class="tile-header fire">Fire Spread Potential</div>
+            <iframe 
+                src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&zoom=5&overlay=fire">
+            </iframe>
+        </div>
 
-      function getStoredMode() {
-        try {
-          return localStorage.getItem('opsThemeMode') || MODE_AUTO;
-        } catch (e) {
-          return MODE_AUTO;
-        }
-      }
+        <div class="tile tile-medium">
+            <div class="tile-header fire">Fuel Moisture / Drought</div>
+            <iframe 
+                src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&zoom=5&overlay=drought">
+            </iframe>
+        </div>
 
-      function setStoredMode(mode) {
-        try {
-          localStorage.setItem('opsThemeMode', mode);
-        } catch (e) {}
-      }
+        <div class="tile tile-medium">
+            <div class="tile-header fire">Smoke / HRRR</div>
+            <iframe 
+                src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&zoom=5&overlay=smoke&product=hrrr">
+            </iframe>
+        </div>
 
-      function isNightByTime() {
-        const now = new Date();
-        const hour = now.getHours();
-        // Night = 19:00–06:00
-        return hour >= 19 || hour < 6;
-      }
+    </div>
 
-      function applyTheme(mode) {
-        let effectiveMode = mode;
+    <!-- BOTTOM ROW — TEXT INTEL -->
+    <div class="tile-row">
 
-        if (mode === MODE_AUTO) {
-          effectiveMode = isNightByTime() ? MODE_NIGHT : MODE_DAY;
-        }
+        <div class="tile tile-small">
+            <div class="tile-header info">Today’s Ops Snapshot</div>
+            <div class="tile-text">
+                <p>Operational summary goes here.</p>
+            </div>
+        </div>
 
-        if (effectiveMode === MODE_NIGHT) {
-          body.classList.add('night-mode');
-        } else {
-          body.classList.remove('night-mode');
-        }
+        <div class="tile tile-small">
+            <div class="tile-header info">Fire Weather</div>
+            <div class="tile-text">
+                <p>Fire weather details go here.</p>
+            </div>
+        </div>
 
-        if (mode === MODE_AUTO) {
-          label.textContent = effectiveMode === MODE_NIGHT ? 'AUTO • NIGHT OPS' : 'AUTO • DAY OPS';
-        } else if (mode === MODE_DAY) {
-          label.textContent = 'MANUAL • DAY OPS';
-        } else if (mode === MODE_NIGHT) {
-          label.textContent = 'MANUAL • NIGHT OPS';
-        }
-      }
+        <div class="tile tile-small">
+            <div class="tile-header info">Solar Power Window</div>
+            <div class="tile-text">
+                <p>Solar power forecast goes here.</p>
+            </div>
+        </div>
 
-      function cycleMode() {
-        const current = getStoredMode();
-        let next;
-        if (current === MODE_AUTO) {
-          next = MODE_NIGHT; // go to night first (fun)
-        } else if (current === MODE_NIGHT) {
-          next = MODE_DAY;
-        } else {
-          next = MODE_AUTO;
-        }
-        setStoredMode(next);
-        applyTheme(next);
-      }
+    </div>
 
-      // Init theme
-      const initialMode = getStoredMode();
-      applyTheme(initialMode);
+</div>
 
-      if (toggle) {
-        toggle.addEventListener('click', cycleMode);
-      }
+<script>
+function toggleTheme() {
+    document.body.classList.toggle("night-ops");
+    document.body.classList.toggle("day-ops");
+}
+</script>
 
-      // Optional: re-check auto mode every 10 minutes
-      setInterval(function () {
-        if (getStoredMode() === MODE_AUTO) {
-          applyTheme(MODE_AUTO);
-        }
-      }, 10 * 60 * 1000);
-
-      // GOES controls
-      const goesFrame = document.getElementById("goes-frame");
-      const buttons = document.querySelectorAll(".goes-button");
-
-      const GOES = {
-        ir: "https://weathernerds.org/sat_conus_ir_loop.php",
-        wv: "https://weathernerds.org/sat_conus_wv_loop.php",
-        vis: "https://weathernerds.org/sat_conus_vis_loop.php",
-        fire: "https://weathernerds.org/sat_conus_geocolor_loop.php"
-      };
-
-      buttons.forEach(btn => {
-        btn.addEventListener("click", () => {
-          buttons.forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
-          goesFrame.src = GOES[btn.dataset.mode];
-        });
-      });
-    })();
-  </script>
 </body>
 </html>
