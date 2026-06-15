@@ -1,559 +1,68 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Hybrid Ops Command Wall</title>
-
-<style>
-/* ========== GLOBAL RESET ========== */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-/* ========== BODY THEMES ========== */
-body {
-    font-family: "Segoe UI", system-ui, sans-serif;
-    overflow: hidden;
-    height: 100vh;
-    width: 100vw;
-    color: #e8f0ff;
-}
-
-/* NIGHT OPS (DEFAULT) */
-body.night-ops {
-    background: radial-gradient(circle at top, #05070c 0%, #020308 40%, #000000 100%);
-}
-
-/* DAY OPS */
-body.day-ops {
-    background: radial-gradient(circle at top, #f3f6fb 0%, #d9e2f0 40%, #c4cfdd 100%);
-    color: #111;
-}
-
-/* ========== THEME TOGGLE BUTTON ========== */
-#theme-toggle {
-    position: fixed;
-    top: 18px;
-    right: 24px;
-    padding: 8px 18px;
-    background: rgba(5, 10, 25, 0.85);
-    border: 1px solid rgba(0, 200, 255, 0.6);
-    box-shadow: 0 0 12px rgba(0, 200, 255, 0.6);
-    cursor: pointer;
-    z-index: 999;
-    font-size: 13px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: #e8f0ff;
-    backdrop-filter: blur(10px);
-}
-body.day-ops #theme-toggle {
-    background: rgba(240, 245, 255, 0.9);
-    color: #111;
-    border-color: rgba(0, 90, 160, 0.7);
-    box-shadow: 0 0 10px rgba(0, 90, 160, 0.5);
-}
-
-/* ========== BACKGROUND GRID + GLOW ========== */
-.background-grid {
-    position: fixed;
-    inset: 0;
-    background-image:
-        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-    background-size: 70px 70px;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.7;
-}
-
-.background-vignette {
-    position: fixed;
-    inset: 0;
-    background:
-        radial-gradient(circle at top left, rgba(0, 180, 255, 0.35), transparent 60%),
-        radial-gradient(circle at bottom right, rgba(255, 90, 0, 0.4), transparent 60%);
-    pointer-events: none;
-    z-index: 0;
-    mix-blend-mode: screen;
-}
-
-/* ========== DASHBOARD LAYOUT ========== */
-.dashboard {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-    padding: 32px 40px 32px 40px;
-    height: 100%;
-}
-
-/* ROWS */
-.tile-row {
-    display: flex;
-    gap: 22px;
-}
-
-/* ========== TILE BASE ========== */
-.tile {
-    background: radial-gradient(circle at top, rgba(40, 60, 90, 0.45), rgba(5, 10, 20, 0.95));
-    border-radius: 14px;
-    border: 1px solid rgba(140, 170, 220, 0.6);
-    box-shadow:
-        0 0 18px rgba(0, 200, 255, 0.35),
-        0 0 26px rgba(255, 90, 0, 0.25),
-        0 0 60px rgba(0, 0, 0, 0.9);
-    overflow: hidden;
-    position: relative;
-    backdrop-filter: blur(14px);
-}
-
-/* DAY MODE TILE ADJUSTMENTS */
-body.day-ops .tile {
-    background: radial-gradient(circle at top, rgba(255,255,255,0.9), rgba(220,230,245,0.95));
-    border-color: rgba(80, 110, 160, 0.7);
-    box-shadow:
-        0 0 12px rgba(0, 120, 220, 0.25),
-        0 0 24px rgba(0, 0, 0, 0.25);
-}
-
-/* TILE SIZES */
-.tile-big {
-    height: 45vh;
-    width: 100%;
-}
-.tile-medium {
-    height: 25vh;
-    flex: 1;
-}
-.tile-small {
-    height: 20vh;
-    flex: 1;
-}
-
-/* ========== TILE HEADER (THICK COMMAND-CENTER STYLE) ========== */
-.tile-header {
-    padding: 8px 14px;
-    font-size: 13px;
-    letter-spacing: 1.8px;
-    text-transform: uppercase;
-    background: linear-gradient(90deg, rgba(5,10,20,0.95), rgba(10,30,60,0.95));
-    border-bottom: 1px solid rgba(160, 190, 240, 0.7);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    position: relative;
-}
-
-/* Header glow bar */
-.tile-header::before {
-    content: "";
-    width: 7px;
-    height: 18px;
-    border-radius: 3px;
-    box-shadow: 0 0 12px currentColor;
-}
-
-/* CATEGORY COLORS */
-.tile-header.storm {
-    color: #7fd4ff;
-}
-.tile-header.storm::before {
-    background: #00c8ff;
-}
-.tile-header.fire {
-    color: #ffb38a;
-}
-.tile-header.fire::before {
-    background: #ff5a00;
-}
-.tile-header.info {
-    color: #e0e6ff;
-}
-.tile-header.info::before {
-    background: #c0c8ff;
-}
-
-/* DAY MODE HEADERS */
-body.day-ops .tile-header {
-    background: linear-gradient(90deg, rgba(230,238,252,0.98), rgba(205,220,245,0.98));
-    border-bottom-color: rgba(90, 120, 170, 0.8);
-}
-
-/* ========== IFRAMES / OBJECTS ========== */
-iframe, object {
-    width: 100%;
-    height: calc(100% - 32px);
-    border: none;
-    border-radius: 0 0 14px 14px;
-}
-
-/* ========== TEXT TILES ========== */
-.tile-text {
-    padding: 12px 14px;
-    font-size: 13px;
-    line-height: 1.5;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    white-space: pre-line;
-}
-
-/* Bullet style */
-.tile-text-line::before {
-    content: "• ";
-    color: #7fd4ff;
-}
-body.day-ops .tile-text-line::before {
-    color: #005a9e;
-}
-
-/* Fallback / error text */
-.text-muted {
-    opacity: 0.7;
-    font-style: italic;
-}
-
-/* Small label style inside text tiles */
-.text-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1.4px;
-    opacity: 0.8;
-    margin-bottom: 4px;
-}
-
-/* ========== SMALL STATUS FOOTER ========== */
-#status-bar {
-    position: fixed;
-    left: 40px;
-    bottom: 18px;
-    font-size: 11px;
-    letter-spacing: 1.4px;
-    text-transform: uppercase;
-    color: rgba(190, 210, 255, 0.8);
-    z-index: 5;
-}
-body.day-ops #status-bar {
-    color: rgba(40, 60, 100, 0.9);
-}
-</style>
-</head>
-
-<body class="night-ops">
-
-<!-- THEME TOGGLE -->
-<div id="theme-toggle" onclick="toggleTheme()">DAY / NIGHT OPS</div>
-
-<!-- BACKGROUND GRID + GLOW -->
-<div class="background-grid"></div>
-<div class="background-vignette"></div>
-
-<!-- STATUS BAR -->
-<div id="status-bar">Last update: initializing…</div>
-
-<!-- MAIN CONTAINER -->
-<div class="dashboard">
-
-    <!-- TOP ROW — BIG TILE (RAINVIEWER) -->
-    <div class="tile tile-big">
-        <div class="tile-header storm">Storm Intelligence — Radar · Satellite · Lightning · Wind</div>
-        <iframe
-            src="https://www.rainviewer.com/map.html?loc=37.93,-90.79,6&layer=radar&overlay=radar&sat=1&lightning=1&wind=1&oFa=1&oC=1&oF=1&oL=1&oW=1"
-        ></iframe>
-    </div>
-
-    <!-- MIDDLE ROW — FIRE OPS (WINDY) -->
-    <div class="tile-row">
-
-        <div class="tile tile-medium">
-            <div class="tile-header fire">Fire Spread Potential</div>
-            <iframe
-                src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&detailLat=37.93&detailLon=-90.79&zoom=6&level=surface&overlay=fire&product=ecmwf&menu=&message=&marker=&calendar=&pressure=&type=map&location=coordinates"
-            ></iframe>
-        </div>
-
-        <div class="tile tile-medium">
-            <div class="tile-header fire">Fuel Moisture / Drought</div>
-            <iframe
-                src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&detailLat=37.93&detailLon=-90.79&zoom=6&level=surface&overlay=drought&product=ecmwf&menu=&message=&marker=&calendar=&pressure=&type=map&location=coordinates"
-            ></iframe>
-        </div>
-
-        <div class="tile tile-medium">
-            <div class="tile-header fire">Smoke / HRRR</div>
-            <iframe
-                src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&detailLat=37.93&detailLon=-90.79&zoom=6&level=surface&overlay=smoke&product=hrrr&menu=&message=&marker=&calendar=&pressure=&type=map&location=coordinates"
-            ></iframe>
-        </div>
-
-    </div>
-
-    <!-- BOTTOM ROW — TEXT INTEL (LIVE DATA) -->
-    <div class="tile-row">
-
-        <!-- TODAY'S OPS SNAPSHOT -->
-        <div class="tile tile-small">
-            <div class="tile-header info">Today’s Ops Snapshot</div>
-            <div class="tile-text" id="ops-snapshot">
-                <div class="text-muted">Loading operational snapshot…</div>
-            </div>
-        </div>
-
-        <!-- FIRE WEATHER -->
-        <div class="tile tile-small">
-            <div class="tile-header fire">Fire Weather</div>
-            <div class="tile-text" id="fire-weather">
-                <div class="text-muted">Loading fire weather data…</div>
-            </div>
-        </div>
-
-        <!-- SOLAR POWER WINDOW -->
-        <div class="tile tile-small">
-            <div class="tile-header info">Solar Power Window</div>
-            <div class="tile-text" id="solar-window">
-                <div class="text-muted">Loading solar forecast…</div>
-            </div>
-        </div>
-
-    </div>
-
-</div>
-
 <script>
-/* ========= CONFIG ========= */
-const LAT = 37.936;   // Potosi, MO
-const LON = -90.787;
-const UPDATE_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
-const PROXY = "26f495889749a69143419843a5c6a3d0";
+  const apiKey = "26f495889749a69143419843a5c6a3d0";
+  const fireWeatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=Potosi,MO,US&units=imperial&appid=${apiKey}`;
+  const solarUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=37.936&lon=-90.781&units=imperial&appid=${apiKey}`;
 
-/* ========= THEME TOGGLE ========= */
-function toggleTheme() {
-    document.body.classList.toggle("night-ops");
-    document.body.classList.toggle("day-ops");
-}
-
-/* ========= STATUS BAR ========= */
-function setStatus(text) {
-    const el = document.getElementById("status-bar");
-    if (el) el.textContent = text;
-}
-
-/* ========= PROXY HELPER ========= */
-function proxied(url) {
-    return PROXY + encodeURIComponent(url);
-}
-
-/* ========= NWS + SOLAR FETCH HELPERS ========= */
-async function fetchJson(url) {
-    const res = await fetch(proxied(url));
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return res.json();
-}
-
-/* ========= MAIN UPDATE FUNCTION ========= */
-async function updateDashboard() {
+  function formatTime() {
     const now = new Date();
-    setStatus("Last update: " + now.toLocaleTimeString());
+    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
 
-    const opsEl = document.getElementById("ops-snapshot");
-    const fireEl = document.getElementById("fire-weather");
-    const solarEl = document.getElementById("solar-window");
+  function updateFireWeather() {
+    fetch(fireWeatherUrl)
+      .then(response => response.json())
+      .then(data => {
+        const temp = data.main.temp;
+        const wind = data.wind.speed;
+        const humidity = data.main.humidity;
+        document.getElementById("fireWeatherBox").innerHTML = `
+          <h2>Fire Weather</h2>
+          <p>Temp: ${temp}°F</p>
+          <p>Wind: ${wind} mph</p>
+          <p>Humidity: ${humidity}%</p>
+          <p style="font-size: 0.8em; color: #45a29e;">Last updated: ${formatTime()}</p>
+        `;
+      })
+      .catch(() => {
+        document.getElementById("fireWeatherBox").innerHTML = `
+          <h2>Fire Weather</h2>
+          <p>Data unavailable</p>
+          <p style="font-size: 0.8em; color: #45a29e;">Last updated: ${formatTime()}</p>
+        `;
+      });
+  }
 
-    if (!opsEl || !fireEl || !solarEl) return;
+  function updateSolarWindow() {
+    fetch(solarUrl)
+      .then(response => response.json())
+      .then(data => {
+        const sunrise = new Date(data.current.sunrise * 1000).toLocaleTimeString();
+        const sunset = new Date(data.current.sunset * 1000).toLocaleTimeString();
+        const uv = data.current.uvi;
+        document.getElementById("solarBox").innerHTML = `
+          <h2>Solar Power Window</h2>
+          <p>Sunrise: ${sunrise}</p>
+          <p>Sunset: ${sunset}</p>
+          <p>UV Index: ${uv}</p>
+          <p style="font-size: 0.8em; color: #45a29e;">Last updated: ${formatTime()}</p>
+        `;
+      })
+      .catch(() => {
+        document.getElementById("solarBox").innerHTML = `
+          <h2>Solar Power Window</h2>
+          <p>Data unavailable</p>
+          <p style="font-size: 0.8em; color: #45a29e;">Last updated: ${formatTime()}</p>
+        `;
+      });
+  }
 
-    opsEl.innerHTML = '<div class="text-muted">Updating…</div>';
-    fireEl.innerHTML = '<div class="text-muted">Updating…</div>';
-    solarEl.innerHTML = '<div class="text-muted">Updating…</div>';
+  // Initial load
+  updateFireWeather();
+  updateSolarWindow();
 
-    try {
-        /* ===== 1) NWS POINTS ===== */
-        const pointsUrl = `https://api.weather.gov/points/${LAT},${LON}`;
-        const points = await fetchJson(pointsUrl);
-        const forecastUrl = points.properties.forecast;
-        const gridUrl = points.properties.forecastGridData;
-        const office = points.properties.cwa || "NWS";
-
-        /* ===== 2) NWS FORECAST ===== */
-        const forecast = await fetchJson(forecastUrl);
-        const periods = forecast.properties.periods || [];
-        const today = periods[0] || null;
-        const tonight = periods[1] || null;
-
-        /* ===== 3) NWS ALERTS ===== */
-        const alertsUrl = `https://api.weather.gov/alerts/active?point=${LAT},${LON}`;
-        const alerts = await fetchJson(alertsUrl);
-        const alertFeatures = alerts.features || [];
-        const hasWarnings = alertFeatures.length > 0;
-        const warningTitles = alertFeatures.map(a => a.properties.event).slice(0, 3);
-
-        /* ===== 4) NWS GRID DATA ===== */
-        const grid = await fetchJson(gridUrl);
-        const temp = grid.properties.temperature?.values?.[0]?.value ?? null;
-        const rh = grid.properties.relativeHumidity?.values?.[0]?.value ?? null;
-        const windSpeed = grid.properties.windSpeed?.values?.[0]?.value ?? null;
-        const windDir = grid.properties.windDirection?.values?.[0]?.value ?? null;
-
-        /* ===== 5) SOLAR / CLOUD COVER (Open-Meteo) ===== */
-        const solarUrl =
-            `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
-            `&hourly=shortwave_radiation,cloud_cover&timezone=auto`;
-        const solar = await fetchJson(solarUrl);
-        const hours = solar.hourly || {};
-        const times = hours.time || [];
-        const radiation = hours.shortwave_radiation || [];
-        const clouds = hours.cloud_cover || [];
-
-        let bestStartIndex = -1;
-        let bestScore = -Infinity;
-        for (let i = 0; i < times.length; i++) {
-            const t = new Date(times[i]);
-            const hour = t.getHours();
-            if (hour < 9 || hour > 17) continue;
-            let radSum = 0;
-            let cloudSum = 0;
-            let count = 0;
-            for (let j = 0; j < 4 && i + j < times.length; j++) {
-                radSum += radiation[i + j] ?? 0;
-                cloudSum += clouds[i + j] ?? 100;
-                count++;
-            }
-            if (count === 0) continue;
-            const radAvg = radSum / count;
-            const cloudAvg = cloudSum / count;
-            const score = radAvg - cloudAvg;
-            if (score > bestScore) {
-                bestScore = score;
-                bestStartIndex = i;
-            }
-        }
-
-        let solarLines = [];
-        if (bestStartIndex >= 0) {
-            const start = new Date(times[bestStartIndex]);
-            const end = new Date(start.getTime() + 4 * 60 * 60 * 1000);
-            const startStr = start.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-            const endStr = end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-            solarLines.push(`Best charging window: ${startStr} – ${endStr}`);
-        } else {
-            solarLines.push("Best charging window: Late morning to mid-afternoon.");
-        }
-
-        if (bestStartIndex >= 0) {
-            const cloudVal = clouds[bestStartIndex] ?? null;
-            if (cloudVal !== null) {
-                if (cloudVal < 30) {
-                    solarLines.push("Skies mostly clear — excellent solar output expected.");
-                } else if (cloudVal < 60) {
-                    solarLines.push("Partial cloud cover — moderate impact on charging.");
-                } else {
-                    solarLines.push("Cloudy conditions — reduced solar efficiency likely.");
-                }
-            }
-        }
-
-        solarLines.push("Preserve some battery reserve for overnight loads.");
-
-        /* ===== OPS SNAPSHOT TEXT ===== */
-        const opsLines = [];
-        if (hasWarnings) {
-            opsLines.push(`Active alerts: ${warningTitles.join(", ")}`);
-        } else {
-            opsLines.push("No active warnings in your immediate area.");
-        }
-
-        if (today) {
-            opsLines.push(`Today: ${today.shortForecast}`);
-        }
-        if (tonight) {
-            opsLines.push(`Tonight: ${tonight.shortForecast}`);
-        }
-
-        if (temp !== null) {
-            opsLines.push(`Temp near-term: ~${Math.round(temp)}°F.`);
-        }
-        if (rh !== null) {
-            opsLines.push(`RH trending toward ~${Math.round(rh)}% this period.`);
-        }
-        if (windSpeed !== null) {
-            const mph = Math.round(windSpeed * 0.621371);
-            opsLines.push(`Surface winds generally around ${mph} mph.`);
-        }
-
-        /* ===== FIRE WEATHER TEXT ===== */
-        const fireLines = [];
-        fireLines.push(`Office: ${office} Fire Weather`);
-
-        if (rh !== null) {
-            fireLines.push(`Min RH near-term around ${Math.round(rh)}%.`);
-        }
-        if (temp !== null) {
-            fireLines.push(`Temps trending near ${Math.round(temp)}°F.`);
-        }
-        if (windSpeed !== null && windDir !== null) {
-            const mph = Math.round(windSpeed * 0.621371);
-            const dir = Math.round(windDir);
-            fireLines.push(`Surface winds ~${mph} mph from ${dir}°.`);
-        } else if (windSpeed !== null) {
-            const mph = Math.round(windSpeed * 0.621371);
-            fireLines.push(`Surface winds ~${mph} mph.`);
-        }
-
-        if (!hasWarnings) {
-            fireLines.push("No critical fire weather conditions currently indicated.");
-        } else {
-            fireLines.push("Monitor active alerts for any fire weather concerns.");
-        }
-
-        /* ===== RENDER OPS SNAPSHOT ===== */
-        opsEl.innerHTML = "";
-        opsLines.forEach(line => {
-            const div = document.createElement("div");
-            div.className = "tile-text-line";
-            div.textContent = line;
-            opsEl.appendChild(div);
-        });
-
-        /* ===== RENDER FIRE WEATHER ===== */
-        fireEl.innerHTML = "";
-        fireLines.forEach(line => {
-            const div = document.createElement("div");
-            div.className = "tile-text-line";
-            div.textContent = line;
-            fireEl.appendChild(div);
-        });
-
-        /* ===== RENDER SOLAR WINDOW ===== */
-        solarEl.innerHTML = "";
-        solarLines.forEach(line => {
-            const div = document.createElement("div");
-            div.className = "tile-text-line";
-            div.textContent = line;
-            solarEl.appendChild(div);
-        });
-
-    } catch (err) {
-        console.error("Update error:", err);
-        setStatus("Last update failed — check network / API.");
-
-        const fallback = (el, label) => {
-            if (!el) return;
-            el.innerHTML = `<div class="text-muted">${label} data unavailable right now.</div>`;
-        };
-        fallback(document.getElementById("ops-snapshot"), "Operational");
-        fallback(document.getElementById("fire-weather"), "Fire weather");
-        fallback(document.getElementById("solar-window"), "Solar");
-    }
-}
-
-/* ========= INITIALIZE ========= */
-updateDashboard();
-setInterval(updateDashboard, UPDATE_INTERVAL_MS);
+  // Refresh every 1 hour (3600000 milliseconds)
+  setInterval(() => {
+    updateFireWeather();
+    updateSolarWindow();
+  }, 3600000);
 </script>
-
-</body>
-</html>
