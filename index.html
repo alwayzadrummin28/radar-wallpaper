@@ -1,28 +1,355 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Radar</title>
-<style>
-  body {
-    margin: 0;
-    padding: 0;
-    background: black;
-    overflow: hidden;
-  }
-  iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    border: none;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <title>Potosi Weather Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #05070b;
+      color: #e5f3ff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow: hidden;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-rows: 60% 40%;
+      grid-template-columns: 100%;
+      width: 100vw;
+      height: 100vh;
+      gap: 6px;
+      padding: 6px;
+      background: radial-gradient(circle at top, #101522 0, #05070b 55%);
+    }
+
+    .top-panel {
+      border-radius: 8px;
+      border: 1px solid #1b2638;
+      overflow: hidden;
+      background: #05070b;
+      box-shadow: 0 0 18px rgba(0, 0, 0, 0.7);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      background: linear-gradient(to right, #0b1220, #111827);
+      border-bottom: 1px solid #1f2937;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #9ca3af;
+    }
+
+    .panel-header span.label {
+      color: #e5f3ff;
+      font-weight: 600;
+    }
+
+    .panel-header .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 8px #22c55e;
+      margin-right: 6px;
+    }
+
+    .panel-header .right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 10px;
+    }
+
+    iframe {
+      border: none;
+      width: 100%;
+      height: 100%;
+    }
+
+    .top-map {
+      flex: 1;
+    }
+
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 2fr 1.4fr;
+      gap: 6px;
+      height: 100%;
+    }
+
+    .panel {
+      border-radius: 8px;
+      border: 1px solid #1b2638;
+      overflow: hidden;
+      background: #05070b;
+      box-shadow: 0 0 18px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-body {
+      flex: 1;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Wind panel */
+    .wind-panel iframe {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Forecast panel */
+    .forecast-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-auto-rows: minmax(0, 1fr);
+      gap: 6px;
+      font-size: 11px;
+    }
+
+    .forecast-tile {
+      border-radius: 6px;
+      border: 1px solid #1f2937;
+      padding: 6px 8px;
+      background: radial-gradient(circle at top left, #111827 0, #020617 60%);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .forecast-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #9ca3af;
+    }
+
+    .forecast-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e5f3ff;
+    }
+
+    .forecast-sub {
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    .forecast-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+
+    .forecast-main .temp {
+      font-size: 22px;
+      font-weight: 700;
+      color: #f97316;
+    }
+
+    .forecast-main .condition {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #e5f3ff;
+    }
+
+    .forecast-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #1f2937;
+      background: rgba(15, 23, 42, 0.9);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #a5b4fc;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #38bdf8;
+      box-shadow: 0 0 6px #38bdf8;
+    }
+
+    .panel-body-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .panel-body-header-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #9ca3af;
+    }
+
+    .panel-body-header-location {
+      font-size: 11px;
+      color: #e5f3ff;
+      font-weight: 600;
+    }
+  </style>
 </head>
 <body>
+  <div class="dashboard">
+    <!-- TOP: SATELLITE + RADAR -->
+    <div class="top-panel">
+      <div class="panel-header">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="status-dot"></div>
+          <span class="label">Potosi, MO — Cloud &amp; Precip Composite</span>
+        </div>
+        <div class="right">
+          <span>Mode: SAT + RADAR</span>
+          <span>Source: RainViewer</span>
+        </div>
+      </div>
+      <div class="top-map">
+        <!-- You can tweak zoom/center in this URL later if you want -->
+        <iframe
+          src="https://www.rainviewer.com/map.html?loc=37.93,-90.79,7&oFa=1&oC=1&oU=1&oCS=1&oF=1&c=3&sm=1&sn=1"
+          allowfullscreen
+        ></iframe>
+      </div>
+    </div>
 
-<iframe src="https://www.rainviewer.com/map.html?loc=36.4177,-90.7213,5.204086775610587&oC=true&oCS=1&oF=1&oAP=1&c=9&o=83&lm=1&layer=radar&sm=1&sn=1"></iframe>
+    <!-- BOTTOM: WIND + FORECAST -->
+    <div class="bottom-row">
+      <!-- WIND PANEL -->
+      <div class="panel wind-panel">
+        <div class="panel-header">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="status-dot"></div>
+            <span class="label">Wind Field — Potosi Region</span>
+          </div>
+          <div class="right">
+            <span>Layer: Wind + Gusts</span>
+            <span>Source: Windy</span>
+          </div>
+        </div>
+        <div style="flex:1;">
+          <!-- Windy embed centered near Potosi, MO -->
+          <iframe
+            src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&detailLat=37.93&detailLon=-90.79&zoom=7&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=&calendar=&pressure=&type=map&location=coordinates&detail=&metricWind=mph&metricTemp=%C2%B0F"
+            allowfullscreen
+          ></iframe>
+        </div>
+      </div>
 
+      <!-- FORECAST PANEL -->
+      <div class="panel">
+        <div class="panel-header">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="status-dot"></div>
+            <span class="label">Today’s Ops Snapshot</span>
+          </div>
+          <div class="right">
+            <span>Potosi, MO</span>
+            <span>Local Time</span>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="panel-body-header">
+            <div>
+              <div class="panel-body-header-title">Forecast — Today</div>
+              <div class="panel-body-header-location">Potosi, Missouri</div>
+            </div>
+            <div class="badge">
+              <div class="badge-dot"></div>
+              <span>Solar &amp; Fire Ops</span>
+            </div>
+          </div>
+
+          <!-- MAIN SUMMARY (you can manually tweak these numbers anytime) -->
+          <div class="forecast-main">
+            <div class="temp">78°F / 58°F</div>
+            <div class="condition">Partly Cloudy</div>
+          </div>
+          <div class="forecast-meta">
+            <span>Rain Chance: 20%</span>
+            <span>Cloud Cover: 45%</span>
+          </div>
+
+          <!-- GRID OF NERDY TILES -->
+          <div class="forecast-grid">
+            <div class="forecast-tile">
+              <div class="forecast-label">Wind</div>
+              <div class="forecast-value">NW 8–15 mph</div>
+              <div class="forecast-sub">Gusts to 22 mph</div>
+            </div>
+
+            <div class="forecast-tile">
+              <div class="forecast-label">Humidity</div>
+              <div class="forecast-value">52%</div>
+              <div class="forecast-sub">Lower in afternoon — watch fine fuels</div>
+            </div>
+
+            <div class="forecast-tile">
+              <div class="forecast-label">Solar Window</div>
+              <div class="forecast-value">10:00 – 16:00</div>
+              <div class="forecast-sub">Best charging; moderate cloud cover</div>
+            </div>
+
+            <div class="forecast-tile">
+              <div class="forecast-label">Sunrise / Sunset</div>
+              <div class="forecast-value">06:00 / 20:15</div>
+              <div class="forecast-sub">Adjust ops &amp; charging around these</div>
+            </div>
+
+            <div class="forecast-tile">
+              <div class="forecast-label">Fire Behavior Note</div>
+              <div class="forecast-value">Moderate</div>
+              <div class="forecast-sub">Watch wind shifts after 15:00</div>
+            </div>
+
+            <div class="forecast-tile">
+              <div class="forecast-label">Visibility</div>
+              <div class="forecast-value">10+ miles</div>
+              <div class="forecast-sub">Good for spotting and travel</div>
+            </div>
+          </div>
+
+          <div style="font-size:9px;color:#6b7280;margin-top:4px;">
+            * Edit these values in the HTML whenever you want a fresh daily snapshot, or we can later wire this to a live API.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
-</html> 
+</html>
