@@ -2,138 +2,211 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tactical Ops Wall</title>
 <style>
     body {
+        background-color: #000;
+        color: #0ff;
+        font-family: 'Segoe UI', sans-serif;
         margin: 0;
-        background: #0a0a0f;
-        font-family: Arial, sans-serif;
-        color: #e0e0e0;
+        padding: 0;
     }
-
-    /* Tactical Glow */
-    .glow {
-        border: 2px solid #0ff;
-        box-shadow: 0 0 12px #0ff;
-        border-radius: 8px;
-    }
-
-    /* Layout Grid */
-    .container {
-        display: grid;
-        grid-template-rows: 45vh 25vh 25vh;
-        gap: 15px;
-        padding: 15px;
-    }
-
-    /* Top Radar Panel */
-    .top-panel {
-        grid-row: 1;
-        background: #11141a;
-    }
-
-    /* Middle Row: 3 Tiles */
-    .middle-row {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
-    }
-
-    /* Bottom Row: 3 Tiles */
-    .bottom-row {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
-    }
-
-    .tile {
-        background: #11141a;
+    .dashboard {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
         padding: 10px;
     }
-
-    /* Optional Title Styling */
+    .top-radar {
+        width: 95%;
+        height: 300px;
+        border: 2px solid #0ff;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .middle-row, .bottom-row {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        width: 95%;
+    }
+    .tile {
+        flex: 1;
+        height: 250px;
+        border: 2px solid #0ff;
+        border-radius: 10px;
+        overflow: hidden;
+        background-color: #001a1a;
+    }
     .tile-title {
-        font-size: 1.1rem;
-        margin-bottom: 8px;
+        text-align: center;
+        font-weight: bold;
+        padding: 5px;
+        background-color: #003333;
         color: #0ff;
-        text-shadow: 0 0 6px #0ff;
     }
 </style>
 </head>
-
 <body>
+<div class="dashboard">
 
-<div class="container">
-
-    <!-- TOP RADAR PANEL -->
-    <div class="top-panel glow">
+    <!-- 🌧️ Top Radar Strip (RainViewer stays as-is) -->
+    <div class="top-radar">
         <iframe 
-            src="https://www.rainviewer.com/map.html?loc=37.8,-92.5,4.8
-            &oC=true
-            &oCS=1
-            &oF=1
-            &oAP=1
-            &oL=1
-            &layer=radar
-            &sm=1
-            &sn=1"
-            style="width:100%; height:100%; border:0; border-radius:8px;">
+            width="100%" 
+            height="100%" 
+            style="border:0;"
+            src="https://embed.windy.com/embed2.html?
+                lat=37.8
+                &lon=-92.5
+                &zoom=5
+                &level=surface
+                &overlay=radar
+                &menu=false
+                &message=true
+                &marker=false
+                &calendar=now
+                &pressure=false
+                &type=map
+                &location=coordinates
+                &detail=false
+                &detailLat=37.8
+                &detailLon=-92.5
+                &metricWind=mph
+                &metricTemp=F">
         </iframe>
     </div>
 
-    <!-- MIDDLE FIRE WEATHER TILES -->
+    <!-- 🔥 Middle Row -->
     <div class="middle-row">
+        <!-- Middle Left: Radar (replaces old Fuel Load) -->
         <div class="tile glow">
-            <<div class="tile glow">
-    <div class="tile-title">Fuel Load</div>
-
-    <iframe 
-        width="100%" 
-        height="100%" 
-        style="border:0; border-radius:8px;"
-        src="https://embed.windy.com/embed2.html?
-            lat=37.8
-            &lon=-92.5
-            &zoom=5
-            &level=surface
-            &overlay=fw-fuel
-            &menu=false
-            &message=true
-            &marker=false
-            &calendar=now
-            &pressure=false
-            &type=map
-            &location=coordinates
-            &detail=false
-            &detailLat=37.8
-            &detailLon=-92.5
-            &metricWind=mph
-            &metricTemp=F">
-    </iframe>
-
-</div>
-        <div class="tile glow">
-            <div class="tile-title">Fuel Moisture</div>
+            <div class="tile-title">Radar</div>
+            <iframe 
+                width="100%" 
+                height="100%" 
+                style="border:0;"
+                src="https://embed.windy.com/embed2.html?
+                    lat=37.8
+                    &lon=-92.5
+                    &zoom=5
+                    &level=surface
+                    &overlay=radar
+                    &menu=false
+                    &message=true
+                    &marker=false
+                    &calendar=now
+                    &pressure=false
+                    &type=map
+                    &location=coordinates
+                    &detail=false
+                    &detailLat=37.8
+                    &detailLon=-92.5
+                    &metricWind=mph
+                    &metricTemp=F">
+            </iframe>
         </div>
-        <div class="tile glow">
-            <div class="tile-title">Fire Behavior</div>
-        </div>
-    </div>
 
-    <!-- BOTTOM TILES -->
-    <div class="bottom-row">
-        <div class="tile glow">
-            <div class="tile-title">Tile A</div>
-        </div>
+        <!-- Middle Center -->
         <div class="tile glow">
             <div class="tile-title">Tile B</div>
         </div>
+
+        <!-- Middle Right -->
         <div class="tile glow">
             <div class="tile-title">Tile C</div>
         </div>
     </div>
 
-</div>
+    <!-- 🔥 Bottom Row -->
+    <div class="bottom-row">
+        <!-- Fuel Load moved here -->
+        <div class="tile glow">
+            <div class="tile-title">Fuel Load</div>
+            <iframe 
+                width="100%" 
+                height="100%" 
+                style="border:0;"
+                src="https://embed.windy.com/embed2.html?
+                    lat=37.8
+                    &lon=-92.5
+                    &zoom=5
+                    &level=surface
+                    &overlay=fw-fuel
+                    &menu=false
+                    &message=true
+                    &marker=false
+                    &calendar=now
+                    &pressure=false
+                    &type=map
+                    &location=coordinates
+                    &detail=false
+                    &detailLat=37.8
+                    &detailLon=-92.5
+                    &metricWind=mph
+                    &metricTemp=F">
+            </iframe>
+        </div>
 
+        <!-- Fuel Moisture -->
+        <div class="tile glow">
+            <div class="tile-title">Fuel Moisture</div>
+            <iframe 
+                width="100%" 
+                height="100%" 
+                style="border:0;"
+                src="https://embed.windy.com/embed2.html?
+                    lat=37.8
+                    &lon=-92.5
+                    &zoom=5
+                    &level=surface
+                    &overlay=fw-moisture
+                    &menu=false
+                    &message=true
+                    &marker=false
+                    &calendar=now
+                    &pressure=false
+                    &type=map
+                    &location=coordinates
+                    &detail=false
+                    &detailLat=37.8
+                    &detailLon=-92.5
+                    &metricWind=mph
+                    &metricTemp=F">
+            </iframe>
+        </div>
+
+        <!-- Fire Behavior -->
+        <div class="tile glow">
+            <div class="tile-title">Fire Behavior</div>
+            <iframe 
+                width="100%" 
+                height="100%" 
+                style="border:0;"
+                src="https://embed.windy.com/embed2.html?
+                    lat=37.8
+                    &lon=-92.5
+                    &zoom=5
+                    &level=surface
+                    &overlay=fw-behavior
+                    &menu=false
+                    &message=true
+                    &marker=false
+                    &calendar=now
+                    &pressure=false
+                    &type=map
+                    &location=coordinates
+                    &detail=false
+                    &detailLat=37.8
+                    &detailLon=-92.5
+                    &metricWind=mph
+                    &metricTemp=F">
+            </iframe>
+        </div>
+    </div>
+
+</div>
 </body>
 </html>
