@@ -1,13 +1,398 @@
-head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Potosi Ops Weather Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --bg-day: #e4e7ec;
+      --bg-night: #05070b;
+      --panel-day: #f4f6fa;
+      --panel-night: rgba(10, 13, 20, 0.96);
+      --text-day: #11141a;
+      --text-night: #f5f7ff;
+      --accent-ember: #ff7a3c;
+      --accent-cyan: #3fd5ff;
+      --border-soft-day: rgba(0, 0, 0, 0.12);
+      --border-soft-night: rgba(255, 255, 255, 0.08);
+      --shadow-day: 0 10px 25px rgba(0, 0, 0, 0.18);
+      --shadow-night: 0 18px 40px rgba(0, 0, 0, 0.85);
+      --radius-panel: 14px;
+      --transition-fast: 0.18s ease-out;
+      --transition-med: 0.28s ease-out;
+      --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-main);
+      background: var(--bg-day);
+      color: var(--text-day);
+      transition: background var(--transition-med), color var(--transition-med);
+    }
+
+    body.night-mode {
+      background: radial-gradient(circle at top, #151b2b 0, #05070b 55%, #020308 100%);
+      color: var(--text-night);
+    }
+
+    /* Layout root */
+    .ops-root {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 18px 18px 26px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Dashboard grid */
+    .dashboard {
+      display: grid;
+      grid-template-rows: 42% 28% 30%;
+      grid-template-columns: 100%;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .middle-row {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr 1.5fr;
+      gap: 10px;
+    }
+
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1.2fr 2.2fr 1.6fr;
+      gap: 10px;
+    }
+
+    /* Generic panel styling */
+    .ops-panel {
+      background: var(--panel-day);
+      border-radius: var(--radius-panel);
+      border: 1px solid var(--border-soft-day);
+      box-shadow: var(--shadow-day);
+      padding: 12px 14px 14px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition:
+        background var(--transition-med),
+        border-color var(--transition-med),
+        box-shadow var(--transition-med),
+        transform var(--transition-fast);
+    }
+
+    body.night-mode .ops-panel {
+      background: linear-gradient(135deg, rgba(10, 13, 20, 0.98), rgba(6, 9, 16, 0.98));
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: var(--shadow-night);
+    }
+
+    .ops-panel:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Glowing top accent bar */
+    .ops-panel::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -10%;
+      width: 120%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-ember), var(--accent-cyan));
+      opacity: 0.65;
+      transition: opacity var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    body.night-mode .ops-panel::before {
+      opacity: 0.9;
+      box-shadow: 0 0 12px rgba(255, 122, 60, 0.55), 0 0 18px rgba(63, 213, 255, 0.45);
+    }
+
+    /* Panel header */
+    .ops-title {
+      font-size: 0.85rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin: 4px 0 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: rgba(0, 0, 0, 0.7);
+    }
+
+    body.night-mode .ops-title {
+      color: rgba(245, 247, 255, 0.82);
+    }
+
+    .ops-title-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ops-title-pill {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: radial-gradient(circle, var(--accent-cyan) 0, var(--accent-ember) 70%, transparent 100%);
+      box-shadow: 0 0 8px rgba(63, 213, 255, 0.7);
+    }
+
+    .ops-title-right {
+      font-size: 0.75rem;
+      opacity: 0.8;
+    }
+
+    /* Content blocks */
+    .ops-content {
+      font-size: 0.9rem;
+      line-height: 1.4;
+      margin-top: 4px;
+      flex: 1;
+    }
+
+    .ops-section {
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    body.night-mode .ops-section {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .ops-section-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      opacity: 0.78;
+      margin-bottom: 3px;
+    }
+
+    .ops-section-body {
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
+    /* Fire behavior color coding */
+    .fire-behavior {
+      font-weight: 700;
+    }
+
+    .fire-low {
+      color: #1fa85b;
+    }
+
+    .fire-moderate {
+      color: #f4a623;
+    }
+
+    .fire-elevated {
+      color: #ff7a3c;
+    }
+
+    .fire-critical {
+      color: #ff3b3b;
+    }
+
+    /* GOES panel */
+    .goes-panel {
+      position: relative;
+    }
+
+    .goes-controls {
+      display: flex;
+      gap: 6px;
+      margin: 6px 0 8px;
+    }
+
+    .goes-button {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.25);
+      background: rgba(244, 246, 250, 0.95);
+      color: #11141a;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition:
+        background var(--transition-fast),
+        color var(--transition-fast),
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast);
+    }
+
+    .goes-button.active {
+      background: #0f172a;
+      color: #e5f3ff;
+      border-color: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+    }
+
+    body.night-mode .goes-button {
+      background: #020617;
+      color: #9ca3af;
+      border-color: #1f2937;
+    }
+
+    .goes-frame-wrapper {
+      flex: 1;
+      border-radius: calc(var(--radius-panel) - 4px);
+      overflow: hidden;
+      border: 1px solid rgba(0, 0, 0, 0.18);
+    }
+
+    body.night-mode .goes-frame-wrapper {
+      border-color: rgba(63, 213, 255, 0.4);
+      box-shadow: 0 0 16px rgba(63, 213, 255, 0.35);
+    }
+
+    .goes-frame-wrapper iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* Radar / Wind / iframe full */
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: calc(var(--radius-panel) - 4px);
+    }
+
+    /* Footer HUD bar */
+    .ops-footer {
+      margin-top: 8px;
+      font-size: 0.78rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      opacity: 0.8;
+    }
+
+    .ops-footer span {
+      white-space: nowrap;
+    }
+
+    /* Theme toggle button */
+    .theme-toggle {
+      position: fixed;
+      top: 10px;
+      right: 12px;
+      z-index: 9999;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.25);
+      background: rgba(244, 246, 250, 0.95);
+      color: #11141a;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+      transition:
+        background var(--transition-fast),
+        color var(--transition-fast),
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast),
+        transform var(--transition-fast);
+    }
+
+    .theme-toggle-icon {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: radial-gradient(circle, var(--accent-ember) 0, var(--accent-cyan) 70%, transparent 100%);
+      box-shadow: 0 0 8px rgba(255, 122, 60, 0.7);
+    }
+
+    .theme-toggle:hover {
+      transform: translateY(-1px);
+    }
+
+    body.night-mode .theme-toggle {
+      background: rgba(8, 11, 18, 0.96);
+      color: #f5f7ff;
+      border-color: rgba(63, 213, 255, 0.6);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.85);
+    }
+
+    body.night-mode .theme-toggle-icon {
+      box-shadow:
+        0 0 10px rgba(63, 213, 255, 0.9),
+        0 0 16px rgba(255, 122, 60, 0.7);
+    }
+
+    /* Mobile tweaks */
+    @media (max-width: 900px) {
+      .ops-root {
+        padding: 10px;
+        height: auto;
+      }
+
+      .dashboard {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+      }
+
+      .middle-row,
+      .bottom-row {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .ops-panel {
+        min-height: 260px;
+        margin-bottom: 12px;
+      }
+
+      iframe {
+        height: 260px;
+      }
+
+      .theme-toggle {
+        top: 8px;
+        right: 8px;
+        padding: 5px 8px;
+        font-size: 0.7rem;
+      }
+    }
+  </style>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Hybrid Ops Wall</title>
-<title>Hybrid Ops Command Wall</title>
 
 <style>
 
 /* GLOBAL RESET */
-/* ========== GLOBAL RESET ========== */
 * {
     margin: 0;
     padding: 0;
@@ -15,10 +400,8 @@ head>
 }
 
 /* BODY THEMES */
-/* ========== BODY THEMES ========== */
 body {
     font-family: "Segoe UI", sans-serif;
-    font-family: "Segoe UI", system-ui, sans-serif;
     overflow: hidden;
     height: 100vh;
     width: 100vw;
@@ -26,21 +409,17 @@ body {
 }
 
 /* NIGHT OPS */
-/* NIGHT OPS (DEFAULT) */
 body.night-ops {
     background: #050505;
-    background: radial-gradient(circle at top, #05070c 0%, #020308 40%, #000000 100%);
 }
 
 /* DAY OPS */
 body.day-ops {
     background: #dfe6ef;
-    background: radial-gradient(circle at top, #f3f6fb 0%, #d9e2f0 40%, #c4cfdd 100%);
     color: #111;
 }
 
 /* THEME TOGGLE BUTTON */
-/* ========== THEME TOGGLE BUTTON ========== */
 #theme-toggle {
     position: fixed;
     top: 20px;
@@ -48,32 +427,14 @@ body.day-ops {
     padding: 8px 16px;
     background: rgba(255,255,255,0.1);
     border: 1px solid rgba(255,255,255,0.2);
-    top: 18px;
-    right: 24px;
-    padding: 8px 18px;
-    background: rgba(5, 10, 25, 0.85);
-    border: 1px solid rgba(0, 200, 255, 0.6);
-    box-shadow: 0 0 12px rgba(0, 200, 255, 0.6);
     cursor: pointer;
     z-index: 999;
     font-size: 14px;
     letter-spacing: 1px;
     backdrop-filter: blur(6px);
-    font-size: 13px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: #e8f0ff;
-    backdrop-filter: blur(10px);
-}
-body.day-ops #theme-toggle {
-    background: rgba(240, 245, 255, 0.9);
-    color: #111;
-    border-color: rgba(0, 90, 160, 0.7);
-    box-shadow: 0 0 10px rgba(0, 90, 160, 0.5);
 }
 
 /* BACKGROUND GRID */
-/* ========== BACKGROUND GRID + GLOW ========== */
 .background-grid {
     position: fixed;
     inset: 0;
@@ -81,13 +442,8 @@ body.day-ops #theme-toggle {
         linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
     background-size: 60px 60px;
-    background-image:
-        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-    background-size: 70px 70px;
     pointer-events: none;
     z-index: 0;
-    opacity: 0.7;
 }
 
 /* HYBRID OPS VIGNETTE */
@@ -96,16 +452,11 @@ body.day-ops #theme-toggle {
     inset: 0;
     background: radial-gradient(circle at top left, rgba(0,150,255,0.15), transparent 60%),
                 radial-gradient(circle at bottom right, rgba(255,80,0,0.15), transparent 60%);
-    background:
-        radial-gradient(circle at top left, rgba(0, 180, 255, 0.35), transparent 60%),
-        radial-gradient(circle at bottom right, rgba(255, 90, 0, 0.4), transparent 60%);
     pointer-events: none;
     z-index: 0;
-    mix-blend-mode: screen;
 }
 
 /* DASHBOARD GRID */
-/* ========== DASHBOARD LAYOUT ========== */
 .dashboard {
     position: relative;
     z-index: 2;
@@ -113,213 +464,165 @@ body.day-ops #theme-toggle {
     flex-direction: column;
     gap: 20px;
     padding: 40px;
-    gap: 22px;
-    padding: 32px 40px 32px 40px;
     height: 100%;
 }
 
 /* TILE ROWS */
-/* ROWS */
 .tile-row {
     display: flex;
     gap: 20px;
-    gap: 22px;
 }
 
 /* TILE BASE */
-/* ========== TILE BASE ========== */
 .tile {
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.15);
     backdrop-filter: blur(8px);
     border-radius: 10px;
-    background: radial-gradient(circle at top, rgba(40, 60, 90, 0.45), rgba(5, 10, 20, 0.95));
-    border-radius: 14px;
-    border: 1px solid rgba(140, 170, 220, 0.6);
-    box-shadow:
-        0 0 18px rgba(0, 200, 255, 0.35),
-        0 0 26px rgba(255, 90, 0, 0.25),
-        0 0 60px rgba(0, 0, 0, 0.9);
     overflow: hidden;
     position: relative;
-    backdrop-filter: blur(14px);
-}
-
-/* DAY MODE TILE ADJUSTMENTS */
-body.day-ops .tile {
-    background: radial-gradient(circle at top, rgba(255,255,255,0.9), rgba(220,230,245,0.95));
-    border-color: rgba(80, 110, 160, 0.7);
-    box-shadow:
-        0 0 12px rgba(0, 120, 220, 0.25),
-        0 0 24px rgba(0, 0, 0, 0.25);
 }
 
 /* TILE SIZES */
 .tile-big { height: 45vh; width: 100%; }
 .tile-medium { height: 25vh; flex: 1; }
 .tile-small { height: 20vh; flex: 1; }
-.tile-big {
-    height: 45vh;
-    width: 100%;
-}
-.tile-medium {
-    height: 25vh;
-    flex: 1;
-}
-.tile-small {
-    height: 20vh;
-    flex: 1;
-}
 
 /* TILE HEADERS — THIN TACTICAL BARS */
-/* ========== TILE HEADER (THICK COMMAND-CENTER STYLE) ========== */
 .tile-header {
     padding: 6px 12px;
     font-size: 14px;
     letter-spacing: 1px;
     background: rgba(255,255,255,0.08);
     border-bottom: 1px solid rgba(255,255,255,0.15);
-    padding: 8px 14px;
-    font-size: 13px;
-    letter-spacing: 1.8px;
-    text-transform: uppercase;
-    background: linear-gradient(90deg, rgba(5,10,20,0.95), rgba(10,30,60,0.95));
-    border-bottom: 1px solid rgba(160, 190, 240, 0.7);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    position: relative;
-}
-
-/* Header glow bar */
-.tile-header::before {
-    content: "";
-    width: 7px;
-    height: 18px;
-    border-radius: 3px;
-    box-shadow: 0 0 12px currentColor;
 }
 
 /* CATEGORY COLORS */
 .tile-header.storm { border-left: 4px solid #00aaff; }
 .tile-header.fire { border-left: 4px solid #ff5500; }
 .tile-header.info { border-left: 4px solid #cccccc; }
-.tile-header.storm {
-    color: #7fd4ff;
-}
-.tile-header.storm::before {
-    background: #00c8ff;
-}
-.tile-header.fire {
-    color: #ffb38a;
-}
-.tile-header.fire::before {
-    background: #ff5a00;
-}
-.tile-header.info {
-    color: #e0e6ff;
-}
-.tile-header.info::before {
-    background: #c0c8ff;
-}
-
-/* DAY MODE HEADERS */
-body.day-ops .tile-header {
-    background: linear-gradient(90deg, rgba(230,238,252,0.98), rgba(205,220,245,0.98));
-    border-bottom-color: rgba(90, 120, 170, 0.8);
-}
 
 /* IFRAMES */
-/* ========== IFRAMES ========== */
 iframe {
     width: 100%;
     height: calc(100% - 30px);
-    height: calc(100% - 32px);
     border: none;
-    border-radius: 0 0 14px 14px;
 }
 
 /* TEXT TILES */
-/* ========== TEXT TILES ========== */
 .tile-text {
     padding: 12px;
     font-size: 14px;
     line-height: 1.4;
-    padding: 12px 14px;
-    font-size: 13px;
-    line-height: 1.5;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    white-space: pre-line;
 }
 
-/* Bullet style */
-.tile-text-line::before {
-    content: "• ";
-    color: #7fd4ff;
-}
-body.day-ops .tile-text-line::before {
-    color: #005a9e;
-}
-
-/* Fallback / error text */
-.text-muted {
-    opacity: 0.7;
-    font-style: italic;
-}
-
-/* Small label style inside text tiles */
-.text-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1.4px;
-    opacity: 0.8;
-    margin-bottom: 4px;
-}
-
-/* ========== SMALL STATUS FOOTER (OPTIONAL) ========== */
-#status-bar {
-    position: fixed;
-    left: 40px;
-    bottom: 18px;
-    font-size: 11px;
-    letter-spacing: 1.4px;
-    text-transform: uppercase;
-    color: rgba(190, 210, 255, 0.8);
-    z-index: 5;
-}
-body.day-ops #status-bar {
-    color: rgba(40, 60, 100, 0.9);
-}
 </style>
 </head>
 
-@@ -143,64 +253,70 @@
+<body>
+  <button class="theme-toggle" id="themeToggle">
+    <span class="theme-toggle-icon"></span>
+    <span id="themeToggleLabel">AUTO • DAY OPS</span>
+  </button>
+
+  <div class="ops-root">
+    <div class="dashboard">
+
+      <!-- ROW 1 — RADAR -->
+      <div class="ops-panel">
+        <div class="ops-title">
+          <div class="ops-title-left">
+            <span class="ops-title-pill"></span>
+            <span>Potosi, MO — Cloud & Precip Composite</span>
+          </div>
+          <div class="ops-title-right">RainViewer</div>
+        </div>
+        <div class="ops-content">
+          <iframe src="https://www.rainviewer.com/map.html?loc=37.93,-90.79,5&dark=1&oC=1&oCS=1&oF=1&oAP=1&oFA=1&oFM=1&c=3&sm=1&sn=1&lm=1&o=83"></iframe>
+        </div>
+        <div class="ops-footer">
+          <span>Potosi Ops Weather Dashboard</span>
+          <span>Radar • Cloud & Precip</span>
+        </div>
+      </div>
+<body class="night-ops">
+
+      <!-- ROW 2 — WIND / FORECAST / FIRE -->
+      <div class="middle-row">
+<!-- THEME TOGGLE -->
+<div id="theme-toggle" onclick="toggleTheme()">DAY / NIGHT OPS</div>
+
+        <!-- WIND -->
+        <div class="ops-panel">
+          <div class="ops-title">
+            <div class="ops-title-left">
+              <span class="ops-title-pill"></span>
+              <span>Wind Field — Potosi Region</span>
+            </div>
+            <div class="ops-title-right">Windy</div>
+          </div>
+          <div class="ops-content">
+            <iframe src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&zoom=5&level=surface&overlay=wind&product=ecmwf&animate=1&metricWind=mph&metricTemp=%C2%B0F"></iframe>
+          </div>
+          <div class="ops-footer">
+            <span>Surface Wind • ECMWF</span>
+            <span>Units: mph • °F</span>
+          </div>
+        </div>
+<!-- BACKGROUND GRID + GLOW -->
 <div class="background-grid"></div>
 <div class="background-vignette"></div>
 
-<!-- STATUS BAR -->
-<div id="status-bar">Last update: initializing…</div>
-
+        <!-- FORECAST / OPS SNAPSHOT -->
+        <div class="ops-panel">
+          <div class="ops-title">
+            <div class="ops-title-left">
+              <span class="ops-title-pill"></span>
+              <span>Today’s Ops Snapshot</span>
+            </div>
+            <div class="ops-title-right">Potosi</div>
+          </div>
+          <div class="ops-content">
+            <div class="ops-section">
+              <div class="ops-section-title">Temperature</div>
+              <div class="ops-section-body">
+                <strong>Temp:</strong> 78°F / 58°F<br>
+                <strong>Condition:</strong> Partly Cloudy<br>
+                <strong>Rain Chance:</strong> 20%
+              </div>
+            </div>
 <!-- MAIN CONTAINER -->
 <div class="dashboard">
 
+            <div class="ops-section">
+              <div class="ops-section-title">Wind & Humidity</div>
+              <div class="ops-section-body">
+                <strong>Wind:</strong> NW 8–15 mph (gusts 22)<br>
+                <strong>Humidity:</strong> 52%
+              </div>
+            </div>
     <!-- TOP ROW — BIG TILE -->
-    <!-- TOP ROW — BIG TILE (RAINVIEWER) -->
     <div class="tile tile-big">
         <div class="tile-header storm">Storm Intelligence</div>
         <iframe 
             src="https://www.rainviewer.com/map.html?loc=37.93,-90.79,5&oFa=1&oC=1&oF=1&oAP=1&oL=1&layer=radar&sat=1&lightning=1&alerts=1">
         </iframe>
-        <div class="tile-header storm">Storm Intelligence — Radar · Satellite · Lightning · Alerts</div>
-        <iframe
-            src="https://www.rainviewer.com/map.html?loc=37.93,-90.79,6&layer=radar&overlay=radar&sat=1&lightning=1&alerts=1&oFa=1&oC=1&oF=1&oAP=1&oL=1"
-        ></iframe>
     </div>
 
+            <div class="ops-section">
+              <div class="ops-section-title">Solar & Fire</div>
+              <div class="ops-section-body">
+                <strong>Solar Window:</strong> 10:00–16:00<br>
+                <strong>Fire Behavior:</strong>
+                <span class="fire-behavior fire-moderate">Moderate</span>
+              </div>
+            </div>
+          </div>
+          <div class="ops-footer">
+            <span>Local: Potosi, MO</span>
+            <span>Updated: 9:58 PM</span>
+          </div>
     <!-- MIDDLE ROW — FIRE OPS -->
-    <!-- MIDDLE ROW — FIRE OPS (WINDY) -->
     <div class="tile-row">
 
         <div class="tile tile-medium">
@@ -327,299 +630,284 @@ body.day-ops #status-bar {
             <iframe 
                 src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&zoom=5&overlay=fire">
             </iframe>
-            <iframe
-                src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&detailLat=37.93&detailLon=-90.79&zoom=6&level=surface&overlay=fire&product=ecmwf&menu=&message=&marker=&calendar=&pressure=&type=map&location=coordinates"
-            ></iframe>
         </div>
 
+        <!-- FIRE WEATHER -->
+        <div class="ops-panel">
+          <div class="ops-title">
+            <div class="ops-title-left">
+              <span class="ops-title-pill"></span>
+              <span>Fire Weather — KFAM Region</span>
+            </div>
+            <div class="ops-title-right">Ops</div>
+          </div>
+          <div class="ops-content">
+            <div class="ops-section">
+              <div class="ops-section-title">Indices</div>
+              <div class="ops-section-body">
+                Haines Index: 4<br>
+                Fine Fuel Moisture: 8–10%<br>
+                ERC: Near Seasonal
+              </div>
+            </div>
+            <div class="ops-section">
+              <div class="ops-section-title">Dispersion</div>
+              <div class="ops-section-body">
+                Ventilation: Good<br>
+                Mixing Height: 3,000–4,000 ft<br>
+                Red Flag: None
+              </div>
+            </div>
+          </div>
+          <div class="ops-footer">
+            <span>Fire Ops Snapshot</span>
+            <span>KFAM Region</span>
+          </div>
         <div class="tile tile-medium">
             <div class="tile-header fire">Fuel Moisture / Drought</div>
             <iframe 
                 src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&zoom=5&overlay=drought">
             </iframe>
-            <iframe
-                src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&detailLat=37.93&detailLon=-90.79&zoom=6&level=surface&overlay=drought&product=ecmwf&menu=&message=&marker=&calendar=&pressure=&type=map&location=coordinates"
-            ></iframe>
         </div>
 
+      </div>
         <div class="tile tile-medium">
             <div class="tile-header fire">Smoke / HRRR</div>
             <iframe 
                 src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&zoom=5&overlay=smoke&product=hrrr">
             </iframe>
-            <iframe
-                src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&detailLat=37.93&detailLon=-90.79&zoom=6&level=surface&overlay=smoke&product=hrrr&menu=&message=&marker=&calendar=&pressure=&type=map&location=coordinates"
-            ></iframe>
         </div>
 
+      <!-- ROW 3 — SOLAR / GOES / ALERTS -->
+      <div class="bottom-row">
     </div>
 
+        <!-- SOLAR -->
+        <div class="ops-panel">
+          <div class="ops-title">
+            <div class="ops-title-left">
+              <span class="ops-title-pill"></span>
+              <span>Solar Power Window</span>
+            </div>
+            <div class="ops-title-right">Off‑Grid</div>
+          </div>
+          <div class="ops-content">
+            <div class="ops-section">
+              <div class="ops-section-title">Today</div>
+              <div class="ops-section-body">
+                Solar Window: 10:00–16:00<br>
+                Cloud Trend: Increasing PM<br>
+                Battery Strategy: Conserve after 18:00
+              </div>
+            </div>
+            <div class="ops-section">
+              <div class="ops-section-title">Tomorrow</div>
+              <div class="ops-section-body">
+                Tomorrow: Slightly Better<br>
+                Plan: Charge early, taper late
+              </div>
     <!-- BOTTOM ROW — TEXT INTEL -->
-    <!-- BOTTOM ROW — TEXT INTEL (LIVE DATA) -->
     <div class="tile-row">
 
-        <!-- TODAY'S OPS SNAPSHOT -->
         <div class="tile tile-small">
             <div class="tile-header info">Today’s Ops Snapshot</div>
             <div class="tile-text">
                 <p>Operational summary goes here.</p>
-            <div class="tile-text" id="ops-snapshot">
-                <div class="text-muted">Loading operational snapshot…</div>
             </div>
+          </div>
+          <div class="ops-footer">
+            <span>Off‑Grid Solar Ops</span>
+            <span>Potosi Cabin</span>
+          </div>
         </div>
 
-        <!-- FIRE WEATHER -->
+        <!-- GOES (BIG PANEL) -->
+        <div class="ops-panel goes-panel">
+          <div class="ops-title">
+            <div class="ops-title-left">
+              <span class="ops-title-pill"></span>
+              <span>GOES Satellite — CONUS</span>
         <div class="tile tile-small">
             <div class="tile-header info">Fire Weather</div>
             <div class="tile-text">
                 <p>Fire weather details go here.</p>
-            <div class="tile-header fire">Fire Weather</div>
-            <div class="tile-text" id="fire-weather">
-                <div class="text-muted">Loading fire weather data…</div>
             </div>
+            <div class="ops-title-right">Medium Loop</div>
+          </div>
+
+          <div class="goes-controls">
+            <button class="goes-button active" data-mode="ir">IR</button>
+            <button class="goes-button" data-mode="wv">Water Vapor</button>
+            <button class="goes-button" data-mode="vis">Visible</button>
+            <button class="goes-button" data-mode="fire">Fire</button>
+          </div>
+
+          <div class="goes-frame-wrapper">
+            <iframe id="goes-frame"
+              src="https://weathernerds.org/sat_conus_ir_loop.php">
+            </iframe>
+          </div>
+
+          <div class="ops-footer">
+            <span>GOES • CONUS</span>
+            <span>Source: WeatherNerds</span>
+          </div>
         </div>
 
-        <!-- SOLAR POWER WINDOW -->
+        <!-- ALERTS + METAR -->
+        <div class="ops-panel">
+          <div class="ops-title">
+            <div class="ops-title-left">
+              <span class="ops-title-pill"></span>
+              <span>Alerts & METAR — KFAM</span>
+            </div>
+            <div class="ops-title-right">Heads‑Up</div>
+          </div>
+          <div class="ops-content">
+            <div class="ops-section">
+              <div class="ops-section-title">Alerts</div>
+              <div class="ops-section-body">
+                Red Flag: None<br>
+                Severe T‑Storm Watch: None<br>
+                Flood Advisory: None
+              </div>
+            </div>
+            <div class="ops-section">
+              <div class="ops-section-title">METAR KFAM</div>
+              <div class="ops-section-body">
+                KFAM 121945Z 32010KT 10SM SCT040 24/12 A2992<br>
+                Wind NW 10 kt<br>
+                Visibility 10+ SM<br>
+                Clouds SCT040<br>
+                Temp/Dew: 24°C / 12°C
+              </div>
         <div class="tile tile-small">
             <div class="tile-header info">Solar Power Window</div>
             <div class="tile-text">
                 <p>Solar power forecast goes here.</p>
-            <div class="tile-text" id="solar-window">
-                <div class="text-muted">Loading solar forecast…</div>
             </div>
+          </div>
+          <div class="ops-footer">
+            <span>KFAM Aviation</span>
+            <span>Local METAR Feed</span>
+          </div>
         </div>
 
-@@ -209,10 +325,233 @@
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const body = document.body;
+      const toggle = document.getElementById('themeToggle');
+      const label = document.getElementById('themeToggleLabel');
+
+      const MODE_AUTO = 'auto';
+      const MODE_DAY = 'day';
+      const MODE_NIGHT = 'night';
+
+      function getStoredMode() {
+        try {
+          return localStorage.getItem('opsThemeMode') || MODE_AUTO;
+        } catch (e) {
+          return MODE_AUTO;
+        }
+      }
+
+      function setStoredMode(mode) {
+        try {
+          localStorage.setItem('opsThemeMode', mode);
+        } catch (e) {}
+      }
+
+      function isNightByTime() {
+        const now = new Date();
+        const hour = now.getHours();
+        // Night = 19:00–06:00
+        return hour >= 19 || hour < 6;
+      }
+
+      function applyTheme(mode) {
+        let effectiveMode = mode;
+
+        if (mode === MODE_AUTO) {
+          effectiveMode = isNightByTime() ? MODE_NIGHT : MODE_DAY;
+        }
+
+        if (effectiveMode === MODE_NIGHT) {
+          body.classList.add('night-mode');
+        } else {
+          body.classList.remove('night-mode');
+        }
+
+        if (mode === MODE_AUTO) {
+          label.textContent = effectiveMode === MODE_NIGHT ? 'AUTO • NIGHT OPS' : 'AUTO • DAY OPS';
+        } else if (mode === MODE_DAY) {
+          label.textContent = 'MANUAL • DAY OPS';
+        } else if (mode === MODE_NIGHT) {
+          label.textContent = 'MANUAL • NIGHT OPS';
+        }
+      }
+
+      function cycleMode() {
+        const current = getStoredMode();
+        let next;
+        if (current === MODE_AUTO) {
+          next = MODE_NIGHT; // go to night first (fun)
+        } else if (current === MODE_NIGHT) {
+          next = MODE_DAY;
+        } else {
+          next = MODE_AUTO;
+        }
+        setStoredMode(next);
+        applyTheme(next);
+      }
+
+      // Init theme
+      const initialMode = getStoredMode();
+      applyTheme(initialMode);
+
+      if (toggle) {
+        toggle.addEventListener('click', cycleMode);
+      }
+
+      // Optional: re-check auto mode every 10 minutes
+      setInterval(function () {
+        if (getStoredMode() === MODE_AUTO) {
+          applyTheme(MODE_AUTO);
+        }
+      }, 10 * 60 * 1000);
+
+      // GOES controls
+      const goesFrame = document.getElementById("goes-frame");
+      const buttons = document.querySelectorAll(".goes-button");
+
+      const GOES = {
+        ir: "https://weathernerds.org/sat_conus_ir_loop.php",
+        wv: "https://weathernerds.org/sat_conus_wv_loop.php",
+        vis: "https://weathernerds.org/sat_conus_vis_loop.php",
+        fire: "https://weathernerds.org/sat_conus_geocolor_loop.php"
+      };
+
+      buttons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          buttons.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          goesFrame.src = GOES[btn.dataset.mode];
+        });
+      });
+    })();
+  </script>
+
 </div>
 
 <script>
-/* ========= CONFIG ========= */
-const LAT = 37.936;   // Potosi, MO
-const LON = -90.787;
-const UPDATE_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
-
-/* ========= THEME TOGGLE ========= */
 function toggleTheme() {
     document.body.classList.toggle("night-ops");
     document.body.classList.toggle("day-ops");
 }
-
-/* ========= STATUS BAR ========= */
-function setStatus(text) {
-    const el = document.getElementById("status-bar");
-    if (el) el.textContent = text;
-}
-
-/* ========= NWS + SOLAR FETCH HELPERS ========= */
-async function fetchJson(url) {
-    const res = await fetch(url, { headers: { "Accept": "application/ld+json, application/json" } });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return res.json();
-}
-
-/* ========= MAIN UPDATE FUNCTION ========= */
-async function updateDashboard() {
-    const now = new Date();
-    setStatus("Last update: " + now.toLocaleTimeString());
-
-    // Elements
-    const opsEl = document.getElementById("ops-snapshot");
-    const fireEl = document.getElementById("fire-weather");
-    const solarEl = document.getElementById("solar-window");
-
-    if (!opsEl || !fireEl || !solarEl) return;
-
-    // Clear existing
-    opsEl.innerHTML = '<div class="text-muted">Updating…</div>';
-    fireEl.innerHTML = '<div class="text-muted">Updating…</div>';
-    solarEl.innerHTML = '<div class="text-muted">Updating…</div>';
-
-    try {
-        /* ===== 1) NWS POINTS (to get grid + forecast URLs) ===== */
-        const pointsUrl = `https://api.weather.gov/points/${LAT},${LON}`;
-        const points = await fetchJson(pointsUrl);
-        const forecastUrl = points.properties.forecast;
-        const gridUrl = points.properties.forecastGridData;
-        const office = points.properties.cwa || "NWS";
-
-        /* ===== 2) NWS FORECAST (for snapshot text) ===== */
-        const forecast = await fetchJson(forecastUrl);
-        const periods = forecast.properties.periods || [];
-        const today = periods[0] || null;
-        const tonight = periods[1] || null;
-
-        /* ===== 3) NWS ALERTS (for warnings) ===== */
-        const alertsUrl = `https://api.weather.gov/alerts/active?point=${LAT},${LON}`;
-        const alerts = await fetchJson(alertsUrl);
-        const alertFeatures = alerts.features || [];
-        const hasWarnings = alertFeatures.length > 0;
-        const warningTitles = alertFeatures.map(a => a.properties.event).slice(0, 3);
-
-        /* ===== 4) NWS GRID DATA (for fire weather specifics) ===== */
-        const grid = await fetchJson(gridUrl);
-        const temp = grid.properties.temperature?.values?.[0]?.value ?? null;
-        const rh = grid.properties.relativeHumidity?.values?.[0]?.value ?? null;
-        const windSpeed = grid.properties.windSpeed?.values?.[0]?.value ?? null;
-        const windDir = grid.properties.windDirection?.values?.[0]?.value ?? null;
-
-        /* ===== 5) SOLAR / CLOUD COVER (Open-Meteo) ===== */
-        const solarUrl =
-            `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
-            `&hourly=shortwave_radiation,cloud_cover&timezone=auto`;
-        const solar = await fetchJson(solarUrl);
-        const hours = solar.hourly || {};
-        const times = hours.time || [];
-        const radiation = hours.shortwave_radiation || [];
-        const clouds = hours.cloud_cover || [];
-
-        // Find best 4-hour window between ~09:00–17:00 with highest radiation & low clouds
-        let bestStartIndex = -1;
-        let bestScore = -Infinity;
-        for (let i = 0; i < times.length; i++) {
-            const t = new Date(times[i]);
-            const hour = t.getHours();
-            if (hour < 9 || hour > 17) continue;
-            // Look at this hour + next 3
-            let radSum = 0;
-            let cloudSum = 0;
-            let count = 0;
-            for (let j = 0; j < 4 && i + j < times.length; j++) {
-                radSum += radiation[i + j] ?? 0;
-                cloudSum += clouds[i + j] ?? 100;
-                count++;
-            }
-            if (count === 0) continue;
-            const radAvg = radSum / count;
-            const cloudAvg = cloudSum / count;
-            const score = radAvg - cloudAvg; // simple heuristic
-            if (score > bestScore) {
-                bestScore = score;
-                bestStartIndex = i;
-            }
-        }
-
-        let solarLines = [];
-        if (bestStartIndex >= 0) {
-            const start = new Date(times[bestStartIndex]);
-            const end = new Date(start.getTime() + 4 * 60 * 60 * 1000);
-            const startStr = start.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-            const endStr = end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-            solarLines.push(`Best charging window: ${startStr} – ${endStr}`);
-        } else {
-            solarLines.push("Best charging window: Late morning to mid-afternoon");
-        }
-
-        // Cloud cover around solar peak
-        if (bestStartIndex >= 0) {
-            const cloudVal = clouds[bestStartIndex] ?? null;
-            if (cloudVal !== null) {
-                if (cloudVal < 30) {
-                    solarLines.push("Skies mostly clear — excellent solar output expected.");
-                } else if (cloudVal < 60) {
-                    solarLines.push("Partial cloud cover — moderate impact on charging.");
-                } else {
-                    solarLines.push("Cloudy conditions — reduced solar efficiency likely.");
-                }
-            }
-        }
-
-        solarLines.push("Consider preserving battery reserve overnight.");
-
-        /* ===== BUILD OPS SNAPSHOT TEXT ===== */
-        const opsLines = [];
-        if (hasWarnings) {
-            opsLines.push(`Active alerts: ${warningTitles.join(", ")}`);
-        } else {
-            opsLines.push("No active warnings in your immediate area.");
-        }
-
-        if (today) {
-            opsLines.push(`Today: ${today.shortForecast}`);
-        }
-        if (tonight) {
-            opsLines.push(`Tonight: ${tonight.shortForecast}`);
-        }
-
-        if (temp !== null) {
-            opsLines.push(`Temp near-term: ~${Math.round(temp)}°F`);
-        }
-        if (rh !== null) {
-            opsLines.push(`RH trending toward ~${Math.round(rh)}% this period.`);
-        }
-        if (windSpeed !== null) {
-            const mph = Math.round(windSpeed * 0.621371); // m/s to mph approx if grid is m/s; NWS often uses knots, but this is still ballpark
-            opsLines.push(`Winds generally around ${mph} mph.`);
-        }
-
-        /* ===== BUILD FIRE WEATHER TEXT ===== */
-        const fireLines = [];
-        fireLines.push(`Office: ${office} Fire Weather`);
-
-        if (rh !== null) {
-            fireLines.push(`Min RH near-term around ${Math.round(rh)}%.`);
-        }
-        if (temp !== null) {
-            fireLines.push(`Temps trending near ${Math.round(temp)}°F.`);
-        }
-        if (windSpeed !== null && windDir !== null) {
-            const mph = Math.round(windSpeed * 0.621371);
-            const dir = Math.round(windDir);
-            fireLines.push(`Surface winds ~${mph} mph from ${dir}°.`);
-        } else if (windSpeed !== null) {
-            const mph = Math.round(windSpeed * 0.621371);
-            fireLines.push(`Surface winds ~${mph} mph.`);
-        }
-
-        if (!hasWarnings) {
-            fireLines.push("No critical fire weather conditions currently indicated.");
-        } else {
-            fireLines.push("Monitor active alerts for any fire weather concerns.");
-        }
-
-        /* ===== RENDER OPS SNAPSHOT ===== */
-        opsEl.innerHTML = "";
-        opsLines.forEach(line => {
-            const div = document.createElement("div");
-            div.className = "tile-text-line";
-            div.textContent = line;
-            opsEl.appendChild(div);
-        });
-
-        /* ===== RENDER FIRE WEATHER ===== */
-        fireEl.innerHTML = "";
-        fireLines.forEach(line => {
-            const div = document.createElement("div");
-            div.className = "tile-text-line";
-            div.textContent = line;
-            fireEl.appendChild(div);
-        });
-
-        /* ===== RENDER SOLAR WINDOW ===== */
-        solarEl.innerHTML = "";
-        solarLines.forEach(line => {
-            const div = document.createElement("div");
-            div.className = "tile-text-line";
-            div.textContent = line;
-            solarEl.appendChild(div);
-        });
-
-    } catch (err) {
-        console.error("Update error:", err);
-        setStatus("Last update failed — check console / network.");
-
-        const fallback = (el, label) => {
-            if (!el) return;
-            el.innerHTML = `<div class="text-muted">${label} data unavailable right now.</div>`;
-        };
-        fallback(document.getElementById("ops-snapshot"), "Operational");
-        fallback(document.getElementById("fire-weather"), "Fire weather");
-        fallback(document.getElementById("solar-window"), "Solar");
-    }
-}
-
-/* ========= INITIALIZE ========= */
-updateDashboard();
-setInterval(updateDashboard, UPDATE_INTERVAL_MS);
 </script>
 
 </body>
+</html>
