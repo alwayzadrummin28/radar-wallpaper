@@ -112,13 +112,11 @@
       gap: 8px;
     }
 
-    /* Wind panel */
     .wind-panel iframe {
       width: 100%;
       height: 100%;
     }
 
-    /* Forecast panel */
     .forecast-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -227,7 +225,7 @@
 </head>
 <body>
   <div class="dashboard">
-    <!-- TOP: SATELLITE + RADAR -->
+    <!-- TOP: SATELLITE + RADAR (night mode, zoomed out, auto-play) -->
     <div class="top-panel">
       <div class="panel-header">
         <div style="display:flex;align-items:center;gap:6px;">
@@ -240,9 +238,8 @@
         </div>
       </div>
       <div class="top-map">
-        <!-- You can tweak zoom/center in this URL later if you want -->
         <iframe
-          src="https://www.rainviewer.com/map.html?loc=37.93,-90.79,7&oFa=1&oC=1&oU=1&oCS=1&oF=1&c=3&sm=1&sn=1"
+          src="https://www.rainviewer.com/map.html?loc=37.93,-90.79,5&dark=1&oC=1&oCS=1&oF=1&oAP=1&oFA=1&oFM=1&c=3&sm=1&sn=1&lm=1&o=83"
           allowfullscreen
         ></iframe>
       </div>
@@ -250,7 +247,7 @@
 
     <!-- BOTTOM: WIND + FORECAST -->
     <div class="bottom-row">
-      <!-- WIND PANEL -->
+      <!-- WIND PANEL (zoomed out) -->
       <div class="panel wind-panel">
         <div class="panel-header">
           <div style="display:flex;align-items:center;gap:6px;">
@@ -263,15 +260,14 @@
           </div>
         </div>
         <div style="flex:1;">
-          <!-- Windy embed centered near Potosi, MO -->
           <iframe
-            src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&detailLat=37.93&detailLon=-90.79&zoom=7&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=&calendar=&pressure=&type=map&location=coordinates&detail=&metricWind=mph&metricTemp=%C2%B0F"
+            src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&detailLat=37.93&detailLon=-90.79&zoom=5&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=&calendar=&pressure=&type=map&location=coordinates&detail=&metricWind=mph&metricTemp=%C2%B0F"
             allowfullscreen
           ></iframe>
         </div>
       </div>
 
-      <!-- FORECAST PANEL -->
+      <!-- FORECAST PANEL (nerdy ops tile) -->
       <div class="panel">
         <div class="panel-header">
           <div style="display:flex;align-items:center;gap:6px;">
@@ -295,7 +291,6 @@
             </div>
           </div>
 
-          <!-- MAIN SUMMARY (you can manually tweak these numbers anytime) -->
           <div class="forecast-main">
             <div class="temp">78°F / 58°F</div>
             <div class="condition">Partly Cloudy</div>
@@ -305,7 +300,6 @@
             <span>Cloud Cover: 45%</span>
           </div>
 
-          <!-- GRID OF NERDY TILES -->
           <div class="forecast-grid">
             <div class="forecast-tile">
               <div class="forecast-label">Wind</div>
