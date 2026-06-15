@@ -2,15 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Potosi Ops Dashboard</title>
+<title>Potosi Ops Weather Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
   html, body {
     width: 100%;
@@ -22,30 +18,31 @@
   }
 
   /* ============================
-     DESKTOP OPS WALL LAYOUT
+     DESKTOP GRID (RESTORED)
      ============================ */
   .dashboard {
     display: grid;
-    grid-template-rows: minmax(250px, 1fr) minmax(200px, 0.8fr) minmax(220px, 0.9fr);
+    grid-template-rows: 42% 28% 30%;
     grid-template-columns: 100%;
-    gap: 8px;
-    padding: 8px;
+    gap: 6px;
+    padding: 6px;
     height: 100vh;
     width: 100vw;
   }
 
   .panel {
-    background: #0a0f18;
-    border: 1px solid #1b2638;
     border-radius: 8px;
+    border: 1px solid #1b2638;
+    background: #05070b;
+    box-shadow: 0 0 18px rgba(0,0,0,0.7);
     display: flex;
     flex-direction: column;
     overflow: hidden;
   }
 
   .panel-header {
-    height: 28px;
-    background: #111827;
+    height: 26px;
+    background: linear-gradient(to right, #0b1220, #111827);
     border-bottom: 1px solid #1f2937;
     display: flex;
     align-items: center;
@@ -54,6 +51,7 @@
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
+    color: #9ca3af;
   }
 
   .status-dot {
@@ -61,7 +59,7 @@
     height: 7px;
     border-radius: 999px;
     background: #22c55e;
-    box-shadow: 0 0 6px #22c55e;
+    box-shadow: 0 0 8px #22c55e;
     margin-right: 6px;
   }
 
@@ -72,25 +70,25 @@
   }
 
   /* ============================
-     MIDDLE ROW GRID
+     MIDDLE ROW (RESTORED)
      ============================ */
   .middle-row {
     display: grid;
-    grid-template-columns: 1.4fr 1fr 1fr;
-    gap: 8px;
+    grid-template-columns: 2fr 1.5fr 1.5fr;
+    gap: 6px;
   }
 
   /* ============================
-     BOTTOM ROW GRID
+     BOTTOM ROW (RESTORED)
      ============================ */
   .bottom-row {
     display: grid;
-    grid-template-columns: 1fr 2fr 1.4fr;
-    gap: 8px;
+    grid-template-columns: 1.2fr 2.2fr 1.6fr;
+    gap: 6px;
   }
 
   /* ============================
-     GOES PANEL
+     GOES CONTROLS
      ============================ */
   .goes-controls {
     display: flex;
@@ -99,7 +97,7 @@
   }
 
   .goes-button {
-    padding: 4px 10px;
+    padding: 3px 8px;
     border-radius: 999px;
     border: 1px solid #1f2937;
     background: #020617;
@@ -117,23 +115,21 @@
 
   .goes-frame-wrapper {
     flex: 1;
+    border-radius: 6px;
     overflow: hidden;
+    border: 1px solid #1f2937;
   }
 
   /* ============================
-     MOBILE MODE (PHONE)
+     MOBILE MODE (ONLY ON PHONES)
      ============================ */
   @media (max-width: 900px) {
-    html, body {
-      overflow-y: auto;
-      overflow-x: hidden;
-    }
+    html, body { overflow-y: auto; overflow-x: hidden; }
 
     .dashboard {
       display: flex;
       flex-direction: column;
       height: auto;
-      overflow-y: auto;
     }
 
     .middle-row,
@@ -142,14 +138,8 @@
       flex-direction: column;
     }
 
-    .panel {
-      min-height: 300px;
-      margin-bottom: 12px;
-    }
-
-    iframe {
-      height: 300px;
-    }
+    .panel { min-height: 300px; margin-bottom: 12px; }
+    iframe { height: 300px; }
   }
 </style>
 </head>
@@ -164,7 +154,7 @@
     <div class="panel-header">
       <div style="display:flex;align-items:center;">
         <div class="status-dot"></div>
-        <span>Potosi Radar + Satellite</span>
+        <span>Potosi, MO — Cloud & Precip Composite</span>
       </div>
       <span>RainViewer</span>
     </div>
@@ -181,11 +171,11 @@
       <div class="panel-header">
         <div style="display:flex;align-items:center;">
           <div class="status-dot"></div>
-          <span>Wind Field</span>
+          <span>Wind Field — Potosi Region</span>
         </div>
         <span>Windy</span>
       </div>
-      <iframe src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&zoom=5&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=&calendar=&pressure=&type=map&location=coordinates&metricWind=mph&metricTemp=%C2%B0F"></iframe>
+      <iframe src="https://embed.windy.com/embed2.html?lat=37.93&lon=-90.79&zoom=5&level=surface&overlay=wind&product=ecmwf&animate=1&metricWind=mph&metricTemp=%C2%B0F"></iframe>
     </div>
 
     <!-- FORECAST -->
@@ -193,16 +183,18 @@
       <div class="panel-header">
         <div style="display:flex;align-items:center;">
           <div class="status-dot"></div>
-          <span>Forecast Snapshot</span>
+          <span>Today’s Ops Snapshot</span>
         </div>
         <span>Potosi</span>
       </div>
       <div style="padding:12px;font-size:13px;line-height:1.4;">
-        <strong>Today:</strong> 78°F / 58°F — Partly Cloudy  
-        <br>Wind NW 8–15 mph (gusts 22)  
-        <br>Humidity 52%  
-        <br>Solar Window: 10:00–16:00  
-        <br>Fire Behavior: Moderate  
+        <strong>Temp:</strong> 78°F / 58°F  
+        <br><strong>Condition:</strong> Partly Cloudy  
+        <br><strong>Rain Chance:</strong> 20%  
+        <br><strong>Wind:</strong> NW 8–15 mph (gusts 22)  
+        <br><strong>Humidity:</strong> 52%  
+        <br><strong>Solar Window:</strong> 10:00–16:00  
+        <br><strong>Fire Behavior:</strong> Moderate  
       </div>
     </div>
 
@@ -211,9 +203,9 @@
       <div class="panel-header">
         <div style="display:flex;align-items:center;">
           <div class="status-dot"></div>
-          <span>Fire Weather</span>
+          <span>Fire Weather — KFAM Region</span>
         </div>
-        <span>KFAM Region</span>
+        <span>Ops</span>
       </div>
       <div style="padding:12px;font-size:13px;line-height:1.4;">
         Haines Index: 4  
@@ -228,7 +220,7 @@
   </div>
 
   <!-- ============================
-       ROW 3 — SOLAR / GOES / ALERTS+METAR
+       ROW 3 — SOLAR / GOES / ALERTS
        ============================ -->
   <div class="bottom-row">
 
@@ -237,7 +229,7 @@
       <div class="panel-header">
         <div style="display:flex;align-items:center;">
           <div class="status-dot"></div>
-          <span>Solar Outlook</span>
+          <span>Solar Power Window</span>
         </div>
         <span>Off‑Grid</span>
       </div>
@@ -254,9 +246,9 @@
       <div class="panel-header">
         <div style="display:flex;align-items:center;">
           <div class="status-dot"></div>
-          <span>GOES Satellite</span>
+          <span>GOES Satellite — CONUS</span>
         </div>
-        <span>Animated IR Default</span>
+        <span>Medium Loop</span>
       </div>
 
       <div class="goes-controls">
@@ -268,7 +260,7 @@
 
       <div class="goes-frame-wrapper">
         <iframe id="goes-frame"
-          src="https://cdn.star.nesdis.noaa.gov/GOES16/ABI/CONUS/IR/GOES16-CONUS-IR-10848x10848.gif">
+          src="https://weathernerds.org/sat_conus_ir_loop.php">
         </iframe>
       </div>
     </div>
@@ -278,9 +270,9 @@
       <div class="panel-header">
         <div style="display:flex;align-items:center;">
           <div class="status-dot"></div>
-          <span>Alerts + METAR</span>
+          <span>Alerts & METAR — KFAM</span>
         </div>
-        <span>KFAM</span>
+        <span>Heads‑Up</span>
       </div>
       <div style="padding:12px;font-size:13px;line-height:1.4;">
         <strong>Alerts:</strong>  
@@ -305,10 +297,10 @@
   const buttons = document.querySelectorAll(".goes-button");
 
   const GOES = {
-    ir: "https://cdn.star.nesdis.noaa.gov/GOES16/ABI/CONUS/IR/GOES16-CONUS-IR-10848x10848.gif",
-    wv: "https://cdn.star.nesdis.noaa.gov/GOES16/ABI/CONUS/WV/GOES16-CONUS-WV-10848x10848.gif",
-    vis: "https://cdn.star.nesdis.noaa.gov/GOES16/ABI/CONUS/GEOCOLOR/GOES16-CONUS-GEOCOLOR-10848x10848.jpg",
-    fire: "https://cdn.star.nesdis.noaa.gov/GOES16/ABI/CONUS/GEOCOLOR/GOES16-CONUS-GEOCOLOR-10848x10848.jpg"
+    ir: "https://weathernerds.org/sat_conus_ir_loop.php",
+    wv: "https://weathernerds.org/sat_conus_wv_loop.php",
+    vis: "https://weathernerds.org/sat_conus_vis_loop.php",
+    fire: "https://weathernerds.org/sat_conus_geocolor_loop.php"
   };
 
   buttons.forEach(btn => {
